@@ -1,0 +1,89 @@
+#!/bin/bash
+
+set -e
+
+usage() {
+    cat <<EOF
+USAGE: $(basename "$0") [-hf] subcommand [options ...]
+OPTIONS:
+  -h        | help
+SUBCOMMANDS:
+  b|backup [<app...>]      | create adb backup
+  l|list <backup>          | list apps in adb backup
+  i|installed [-3] [-f]    | list installed apps
+  p|pack <app>             | pack app into adb backup
+  r|restore <backup> <app> | restore app in adb backup
+  p|unpack <backup> <app>  | unpack app in adb backup
+EOF
+    exit 1
+}
+
+backup() {
+    if [ -n "$1" ]
+    then
+        app=$*
+        backup_file="${app// /_}.ab"
+    else
+        app="-all"
+        backup_file="$(date +%Y-%m-%d).ab"
+    fi
+    adb -d backup -f "$backup_file" -apk $app
+}
+
+list() {
+    backup_file="$1"
+    backup_list="${backup_file/%.ab/.list}"
+    if [ "$backup_file" -nt "$backup_list" ]
+    then
+        tail -n +5 "$backup_file" \
+            | zlib-flate -uncompress \
+            | tar -tf - \
+            | awk -F/ '{print $2}' \
+            | uniq \
+            | tee "$backup_list"
+    else
+        cat "$backup_list"
+    fi
+}
+
+installed() {
+    adb -d shell cmd package list packages "$@" | sed 's/^package://'
+}
+
+pack() {
+    mkdir -p pack
+    app="$1"
+    app="${app/#apps\//}"
+    (echo -ne 'ANDROID BACKUP\n1\n1\nnone\n' && tar --format=ustar -cf - "apps/$app" | zlib-flate -compress) >"pack/$app.ab"
+}
+
+restore() {
+    backup_file="$1"
+    app="$2"
+    unpack "$backup_file" "$app"
+    pack "$app"
+    adb -d install "apps/$app/a/base.apk"
+    adb -d restore "pack/$app.ab"
+}
+
+unpack() {
+    tail -n +5 "$1" | zlib-flate -uncompress | tar -xf - "apps/$2"
+}
+
+action="$1"
+case "$action" in
+    b) action=backup ;;
+    l) action=list ;;
+    i) action=installed ;;
+    p) action=pack ;;
+    r) action=restore ;;
+    u) action=unpack ;;
+esac
+
+if type "$action" 2>/dev/null | grep -qF "function"
+then
+    shift
+    $action "$@"
+else
+    usage
+fi
