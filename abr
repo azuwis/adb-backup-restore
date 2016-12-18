@@ -32,6 +32,7 @@ backup() {
 
 list() {
     backup="$1"
+    test -z "$backup" && usage
     backup_list="list/$backup.list"
     mkdir -p list
     if [ "$backup" -nt "$backup_list" ]
@@ -54,6 +55,7 @@ installed() {
 pack() {
     mkdir -p pack
     app="$1"
+    test -z "$app" && usage
     app="${app/#apps\//}"
     (echo -ne 'ANDROID BACKUP\n1\n1\nnone\n' && tar --format=ustar -cf - "apps/$app" | zlib-flate -compress) >"pack/$app.ab"
 }
@@ -61,6 +63,8 @@ pack() {
 restore() {
     backup="$1"
     app="$2"
+    test -z "$backup" && usage
+    test -z "$app" && usage
     unpack "$backup" "$app"
     pack "$app"
     adb -d install "apps/$app/a/base.apk"
@@ -68,7 +72,10 @@ restore() {
 }
 
 unpack() {
-    tail -n +5 "$1" | zlib-flate -uncompress | tar -xf - "apps/$2"
+    backup="$1"
+    app="$2"
+    test -z "$backup" && usage
+    tail -n +5 "$backup" | zlib-flate -uncompress | tar -xf - "apps/$app"
 }
 
 action="$1"
