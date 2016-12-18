@@ -22,21 +22,21 @@ backup() {
     if [ -n "$1" ]
     then
         app=$*
-        backup_file="${app// /_}.ab"
+        backup="${app// /_}.ab"
     else
         app="-all"
-        backup_file="$(date +%Y-%m-%d).ab"
+        backup="$(date +%Y-%m-%d).ab"
     fi
-    adb -d backup -f "$backup_file" -apk $app
+    adb -d backup -f "$backup" -apk $app
 }
 
 list() {
-    backup_file="$1"
-    backup_list="list/$backup_file.list"
+    backup="$1"
+    backup_list="list/$backup.list"
     mkdir -p list
-    if [ "$backup_file" -nt "$backup_list" ]
+    if [ "$backup" -nt "$backup_list" ]
     then
-        tail -n +5 "$backup_file" \
+        tail -n +5 "$backup" \
             | zlib-flate -uncompress \
             | tar -tf - \
             | awk -F/ '{print $2}' \
@@ -59,9 +59,9 @@ pack() {
 }
 
 restore() {
-    backup_file="$1"
+    backup="$1"
     app="$2"
-    unpack "$backup_file" "$app"
+    unpack "$backup" "$app"
     pack "$app"
     adb -d install "apps/$app/a/base.apk"
     adb -d restore "pack/$app.ab"
