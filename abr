@@ -32,7 +32,8 @@ backup() {
 
 list() {
     backup_file="$1"
-    backup_list="${backup_file/%.ab/.list}"
+    backup_list="list/$backup_file.list"
+    mkdir -p list
     if [ "$backup_file" -nt "$backup_list" ]
     then
         tail -n +5 "$backup_file" \
