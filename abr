@@ -67,7 +67,7 @@ restore() {
     test -z "$app" && usage
     unpack "$backup" "$app"
     pack "$app"
-    adb -d install "apps/$app/a/base.apk"
+    adb -d install "apps/$app/a/base.apk" || true
     adb -d restore "pack/$app.ab"
 }
 
