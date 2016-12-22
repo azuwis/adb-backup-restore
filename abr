@@ -57,7 +57,7 @@ pack() {
     app="$1"
     test -z "$app" && usage
     app="${app/#apps\//}"
-    (echo -ne 'ANDROID BACKUP\n1\n1\nnone\n' && tar --format=ustar -cf - "apps/$app" | zlib-flate -compress) >"pack/$app.ab"
+    (echo -ne 'ANDROID BACKUP\n1\n1\nnone\n' && tar --format=ustar -cf - -T "apps/$app.list" | zlib-flate -compress) >"pack/$app.ab"
 }
 
 restore() {
@@ -75,7 +75,9 @@ unpack() {
     backup="$1"
     app="$2"
     test -z "$backup" && usage
-    tail -n +5 "$backup" | zlib-flate -uncompress | tar -xf - "apps/$app"
+    app_list="apps/$app.list"
+    mkdir -p apps
+    tail -n +5 "$backup" | zlib-flate -uncompress | tar -xvf - "apps/$app" > "$app_list"
 }
 
 action="$1"
