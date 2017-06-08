@@ -49,7 +49,11 @@ list() {
 }
 
 installed() {
-    adb -d shell cmd package list packages "$@" | sed 's/^package://'
+    if adb -d shell cmd | grep -q 'cmd: not found'; then
+        adb -d shell pm list packages "$@" | sed 's/^package://'
+    else
+        adb -d shell cmd package list packages "$@" | sed 's/^package://'
+    fi
 }
 
 pack() {
