@@ -9,6 +9,7 @@ OPTIONS:
   -h        | help
 SUBCOMMANDS:
   b|backup [<app...>]      | create adb backup
+  d|diff <backup>          | diff apps from installed to backup
   l|list <backup>          | list apps in adb backup
   i|installed [-3] [-f]    | list installed apps
   p|pack <app>             | pack app into adb backup
@@ -28,6 +29,12 @@ backup() {
         backup="$(date +%Y-%m-%d).ab"
     fi
     adb -d backup -f "$backup" -apk $app
+}
+
+diff() {
+    backup="$1"
+    test -z "$backup" && usage
+    command diff -u <(installed | sort) <(list "$backup" | sort)
 }
 
 list() {
@@ -87,6 +94,7 @@ unpack() {
 action="$1"
 case "$action" in
     b) action=backup ;;
+    d) action=diff ;;
     l) action=list ;;
     i) action=installed ;;
     p) action=pack ;;
