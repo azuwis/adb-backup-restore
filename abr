@@ -2,6 +2,8 @@
 
 set -e
 
+ADB="adb -d"
+
 usage() {
     cat <<EOF
 USAGE: $(basename "$0") [-hf] subcommand [options ...]
@@ -28,7 +30,7 @@ backup() {
         app="-all"
         backup="$(date +%Y-%m-%d).ab"
     fi
-    adb -d backup -f "$backup" -apk $app
+    $ADB backup -f "$backup" -apk $app
 }
 
 diff() {
@@ -56,10 +58,10 @@ list() {
 }
 
 installed() {
-    if adb -d shell cmd | grep -q 'cmd: not found'; then
-        adb -d shell pm list packages "$@" | sed 's/^package://'
+    if $ADB shell cmd | grep -q 'cmd: not found'; then
+        $ADB shell pm list packages "$@" | sed 's/^package://'
     else
-        adb -d shell cmd package list packages "$@" | sed 's/^package://'
+        $ADB shell cmd package list packages "$@" | sed 's/^package://'
     fi
 }
 
@@ -78,8 +80,8 @@ restore() {
     test -z "$app" && usage
     unpack "$backup" "$app"
     pack "$app"
-    adb -d install "apps/$app/a/base.apk" || true
-    adb -d restore "pack/$app.ab"
+    $ADB install "apps/$app/a/base.apk" || true
+    $ADB restore "pack/$app.ab"
 }
 
 unpack() {
