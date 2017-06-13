@@ -16,6 +16,8 @@ SUBCOMMANDS:
   i|installed [-3] [-f]    | list installed apps
   p|pack <app>             | pack app into adb backup
   r|restore <backup> <app> | restore app in adb backup
+  sb|subackup <app>        | backup app using su
+  sr|surestore <app>       | restore app using su
   p|unpack <backup> <app>  | unpack app in adb backup
 EOF
     exit 1
@@ -84,6 +86,26 @@ restore() {
     $ADB restore "pack/$app.ab"
 }
 
+subackup() {
+    app="$1"
+    $ADB shell am force-stop "$app"
+    mkdir -p "subackup/$app"
+    apk="$($ADB shell pm path "$app")"
+    apk="${apk:8}"
+    rsync --rsync-path='su -c rsync' -e ssh "adb:$apk" "subackup/$app/$app.apk"
+    rsync --rsync-path='su -c rsync' -e ssh -a --exclude="/cache/" --exclude="/code_cache/" --exclude="/lib" "adb:/data/data/$app/" "subackup/$app/data/"
+}
+
+surestore() {
+    app="$1"
+    test -z "$app" && usage
+    $ADB install "subackup/$app/$app.apk" || true
+    $ADB shell am force-stop "$app"
+    user="$($ADB shell stat -c '%U:%G' /data/data/$app)"
+    rsync --rsync-path='su -c rsync' -e ssh -a --chown="$user" --exclude="/cache/" --exclude="/code_cache/" --exclude="/lib" "subackup/$app/data/" "adb:/data/data/$app/"
+    $ADB shell su -c "restorecon -R /data/data/$app"
+}
+
 unpack() {
     backup="$1"
     app="$2"
@@ -97,10 +119,12 @@ action="$1"
 case "$action" in
     b) action=backup ;;
     d) action=diff ;;
-    l) action=list ;;
     i) action=installed ;;
+    l) action=list ;;
     p) action=pack ;;
     r) action=restore ;;
+    sb) action=subackup ;;
+    sr) action=surestore ;;
     u) action=unpack ;;
 esac
 
