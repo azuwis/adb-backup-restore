@@ -88,6 +88,7 @@ restore() {
 
 subackup() {
     app="$1"
+    test -z "$app" && usage
     $ADB shell am force-stop "$app"
     mkdir -p "subackup/$app"
     apk="$($ADB shell pm path "$app")"
