@@ -2,7 +2,9 @@
 
 set -e
 
-ADB="adb -d"
+ADB='adb -d'
+RSYNC_LOCAL_PORT='1873'
+RSYNC_BASE_PATH="rsync://backup@127.0.0.1:${RSYNC_LOCAL_PORT}"
 
 usage() {
     cat <<EOF
@@ -16,8 +18,8 @@ SUBCOMMANDS:
   i|installed [-3] [-f]    | list installed apps
   p|pack <app>             | pack app into adb backup
   r|restore <backup> <app> | restore app in adb backup
-  sb|subackup <app>        | backup app using su
-  sr|surestore <app>       | restore app using su
+  rb|raw_backup <app>        | backup app using su
+  rr|raw_restore <app>       | restore app using su
   p|unpack <backup> <app>  | unpack app in adb backup
 EOF
     exit 1
@@ -86,25 +88,95 @@ restore() {
     $ADB restore "pack/$app.ab"
 }
 
-subackup() {
-    app="$1"
-    test -z "$app" && usage
-    $ADB shell am force-stop "$app"
-    mkdir -p "subackup/$app"
-    apk="$($ADB shell pm path "$app")"
-    apk="${apk:8}"
-    rsync --rsync-path='su -c rsync' -e ssh "adb:$apk" "subackup/$app/$app.apk"
-    rsync --rsync-path='su -c rsync' -e ssh -a --exclude="/cache/" --exclude="/code_cache/" --exclude="/lib" "adb:/data/data/$app/" "subackup/$app/data/"
+adb_root() {
+    $ADB wait-for-device
+    if [ "$($ADB shell whoami)" != 'root' ]
+    then
+        if [ "$($ADB shell getprop ro.adb.secure)" = 0 ]
+        then
+            $ADB root
+        else
+            $ADB shell 'su -c "stop adbd && setprop service.adb.root 1 && start adbd"'
+        fi
+        $ADB wait-for-device
+    fi
 }
 
-surestore() {
+adb_unroot() {
+    $ADB wait-for-device
+    if [ "$($ADB shell whoami)" = 'root' ]
+    then
+        if [ "$($ADB shell getprop ro.adb.secure)" = 0 ]
+        then
+            $ADB unroot
+        else
+            $ADB shell 'su -c "stop adbd && setprop service.adb.root 0 && start adbd"'
+        fi
+        $ADB wait-for-device
+    fi
+}
+
+start_rsync() {
+    adb_root
+    if ! adb shell test -e /mnt/secure/rsyncd.pid
+    then
+        $ADB shell 'cat >/mnt/secure/rsyncd.conf' <<EOF
+address = 127.0.0.1
+gid = root
+pid file = /mnt/secure/rsyncd.pid
+read only = false
+uid = root
+use chroot = false
+[data]
+  auth users = backup
+  hosts allow = 127.0.0.1
+  path = /data
+  secrets file = /mnt/secure/rsyncd.secrets
+EOF
+        password="$(LC_ALL=C tr -dc '[:graph:]' < /dev/urandom | head -c 16)"
+        $ADB shell 'cat >/mnt/secure/rsyncd.secrets' <<EOF
+backup:${password}
+EOF
+        $ADB shell chmod 600 /mnt/secure/rsyncd.conf /mnt/secure/rsyncd.secrets
+        $ADB shell -t rsync --daemon --config=/mnt/secure/rsyncd.conf
+        adb forward "tcp:$RSYNC_LOCAL_PORT" tcp:873
+    fi
+}
+
+stop_rsync() {
+    if adb shell test -e /mnt/secure/rsyncd.pid
+    then
+        $ADB shell 'kill $(cat /mnt/secure/rsyncd.pid)'
+        $ADB shell rm /mnt/secure/rsyncd.conf /mnt/secure/rsyncd.secrets
+    fi
+    adb_unroot
+}
+
+raw_backup() {
     app="$1"
     test -z "$app" && usage
-    $ADB install "subackup/$app/$app.apk" || true
+    start_rsync
     $ADB shell am force-stop "$app"
-    user="$($ADB shell stat -c '%U:%G' /data/data/$app)"
-    rsync --rsync-path='su -c rsync' -e ssh -a --chown="$user" --exclude="/cache/" --exclude="/code_cache/" --exclude="/lib" "subackup/$app/data/" "adb:/data/data/$app/"
-    $ADB shell su -c "restorecon -R /data/data/$app"
+    mkdir -p "raw_backup/$app"
+    apk="$($ADB shell pm path "$app")"
+    apk="${apk:8}"
+    password="$($ADB shell cat /mnt/secure/rsyncd.secrets)"
+    password="${password:7}"
+    RSYNC_PASSWORD="$password" rsync "${RSYNC_BASE_PATH}${apk}" "raw_backup/$app/$app.apk"
+    RSYNC_PASSWORD="$password" rsync -a --exclude="/cache/" --exclude="/code_cache/" --exclude="/lib" "${RSYNC_BASE_PATH}/data/data/$app/" "raw_backup/$app/data/"
+}
+
+raw_restore() {
+    app="$1"
+    test -z "$app" && usage
+    start_rsync
+    $ADB install "raw_backup/$app/$app.apk" || true
+    $ADB shell am force-stop "$app"
+    user="$($ADB shell stat -c '%U:%G' "/data/data/$app")"
+    password="$($ADB shell cat /mnt/secure/rsyncd.secrets)"
+    password="${password:7}"
+    RSYNC_PASSWORD="$password" rsync -a --chown="$user" --exclude="/cache/" --exclude="/code_cache/" --exclude="/lib" "raw_backup/$app/data/" "${RSYNC_BASE_PATH}/data/data/$app/"
+    $ADB shell restorecon -R "/data/data/$app"
 }
 
 unpack() {
@@ -124,8 +196,8 @@ case "$action" in
     l) action=list ;;
     p) action=pack ;;
     r) action=restore ;;
-    sb) action=subackup ;;
-    sr) action=surestore ;;
+    rb) action=raw_backup ;;
+    rr) action=raw_restore ;;
     u) action=unpack ;;
 esac
 
