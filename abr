@@ -149,8 +149,8 @@ stop_rsync() {
         $ADB shell 'kill $(cat /mnt/secure/rsyncd.pid)'
         $ADB shell rm /mnt/secure/rsyncd.conf /mnt/secure/rsyncd.secrets
         $ADB forward --remove "tcp:$RSYNC_LOCAL_PORT"
+        adb_unroot
     fi
-    adb_unroot
 }
 
 raw_backup() {
