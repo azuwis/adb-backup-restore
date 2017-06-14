@@ -18,8 +18,8 @@ SUBCOMMANDS:
   i|installed [-3] [-f]    | list installed apps
   p|pack <app>             | pack app into adb backup
   r|restore <backup> <app> | restore app in adb backup
-  rb|raw_backup <app>        | backup app using su
-  rr|raw_restore <app>       | restore app using su
+  rb|raw_backup <app>      | backup app by raw files
+  rr|raw_restore <app>     | restore app by raw files
   p|unpack <backup> <app>  | unpack app in adb backup
 EOF
     exit 1
