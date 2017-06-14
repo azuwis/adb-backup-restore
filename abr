@@ -162,8 +162,7 @@ raw_backup() {
     mkdir -p "raw_backup/$app"
     apk="$($ADB shell pm path "$app")"
     apk="${apk:8}"
-    password="$($ADB shell cat /mnt/secure/rsyncd.secrets)"
-    password="${password:7}"
+    password="$(rsync_password)"
     RSYNC_PASSWORD="$password" rsync "${RSYNC_BASE_PATH}${apk}" "raw_backup/$app/$app.apk"
     RSYNC_PASSWORD="$password" rsync -a --exclude="/cache/" --exclude="/code_cache/" --exclude="/lib" "${RSYNC_BASE_PATH}/data/data/$app/" "raw_backup/$app/data/"
 }
@@ -171,8 +170,7 @@ raw_backup() {
 raw_backup_spefial() {
     start_rsync
     mkdir -p "raw_backup/spefial/data"
-    password="$($ADB shell cat /mnt/secure/rsyncd.secrets)"
-    password="${password:7}"
+    password="$(rsync_password)"
     RSYNC_PASSWORD="$password" rsync -a --files-from="$ABR_DIR/spefial.list" "${RSYNC_BASE_PATH}/data/" "raw_backup/spefial/data/"
 }
 
@@ -183,10 +181,15 @@ raw_restore() {
     $ADB install "raw_backup/$app/$app.apk" || true
     $ADB shell am force-stop "$app"
     user="$($ADB shell stat -c '%U:%G' "/data/data/$app")"
-    password="$($ADB shell cat /mnt/secure/rsyncd.secrets)"
-    password="${password:7}"
+    password="$(rsync_password)"
     RSYNC_PASSWORD="$password" rsync -a --chown="$user" --exclude="/cache/" --exclude="/code_cache/" --exclude="/lib" "raw_backup/$app/data/" "${RSYNC_BASE_PATH}/data/data/$app/"
     $ADB shell restorecon -R "/data/data/$app"
+}
+
+rsync_password() {
+    password="$($ADB shell cat /mnt/secure/rsyncd.secrets)"
+    password="${password:7}"
+    echo "${password}"
 }
 
 unpack() {
