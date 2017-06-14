@@ -3,6 +3,7 @@
 set -e
 
 ADB='adb -d'
+ABR_DIR="$(dirname "$(readlink -f "$0")")"
 RSYNC_LOCAL_PORT='1873'
 RSYNC_BASE_PATH="rsync://backup@127.0.0.1:${RSYNC_LOCAL_PORT}"
 
@@ -165,6 +166,14 @@ raw_backup() {
     password="${password:7}"
     RSYNC_PASSWORD="$password" rsync "${RSYNC_BASE_PATH}${apk}" "raw_backup/$app/$app.apk"
     RSYNC_PASSWORD="$password" rsync -a --exclude="/cache/" --exclude="/code_cache/" --exclude="/lib" "${RSYNC_BASE_PATH}/data/data/$app/" "raw_backup/$app/data/"
+}
+
+raw_backup_spefial() {
+    start_rsync
+    mkdir -p "raw_backup/spefial/data"
+    password="$($ADB shell cat /mnt/secure/rsyncd.secrets)"
+    password="${password:7}"
+    RSYNC_PASSWORD="$password" rsync -a --files-from="$ABR_DIR/spefial.list" "${RSYNC_BASE_PATH}/data/" "raw_backup/spefial/data/"
 }
 
 raw_restore() {

@@ -1,0 +1,8 @@
+/system/appops.xml
+/system/users/0/settings_global.xml
+/system/users/0/settings_secure.xml
+/system/users/0/settings_system.xml
+/user/0/com.android.providers.contacts/databases/calllog.db
+/user/0/com.android.providers.contacts/databases/contacts2.db
+/user_de/0/com.android.providers.telephony/databases/mmssms.db
+/user_de/0/com.android.providers.telephony/databases/telephony.db
