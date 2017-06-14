@@ -1,3 +1,4 @@
+/misc/wifi/wpa_supplicant.conf
 /system/appops.xml
 /system/users/0/settings_global.xml
 /system/users/0/settings_secure.xml
