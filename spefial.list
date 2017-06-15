@@ -1,8 +1,14 @@
+/misc/bluedroid/bt_config.conf
 /misc/wifi/wpa_supplicant.conf
 /system/appops.xml
+/system/netpolicy.xml
+/system/users/0/appwidgets.xml
 /system/users/0/settings_global.xml
 /system/users/0/settings_secure.xml
 /system/users/0/settings_system.xml
+/system/users/0/wallpaper
+/system/users/0/wallpaper_info.xml
+/system_ce/0/accounts_ce.db
 /user/0/com.android.providers.contacts/databases/calllog.db
 /user/0/com.android.providers.contacts/databases/contacts2.db
 /user_de/0/com.android.providers.telephony/databases/mmssms.db
