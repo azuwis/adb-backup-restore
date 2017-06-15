@@ -38,10 +38,28 @@ backup() {
     $ADB backup -f "$backup" -apk $app
 }
 
+backup_permission() {
+    app="$1"
+    test -z "$app" && usage
+    mkdir -p permission
+    if [ -d "raw_backup/$app" ]
+    then
+        permission_file="raw_backup/$app/permission"
+    else
+        permission_file=permission/$app
+    fi
+    get_permission "$app" >"$permission_file"
+}
+
 diff() {
     backup="$1"
     test -z "$backup" && usage
     command diff -u <(installed | sort) <(list "$backup" | sort)
+}
+
+get_permission() {
+    app="$1"
+    $ADB shell dumpsys package "$app" | awk -F':| +' '/runtime permissions:$/{flag=1;next}/(:$|^$)/{flag=0} {if(flag) print $2}'
 }
 
 list() {
@@ -165,6 +183,7 @@ raw_backup() {
     password="$(rsync_password)"
     RSYNC_PASSWORD="$password" rsync "${RSYNC_BASE_PATH}${apk}" "raw_backup/$app/$app.apk"
     RSYNC_PASSWORD="$password" rsync -a --exclude="/cache/" --exclude="/code_cache/" --exclude="/lib" "${RSYNC_BASE_PATH}/data/data/$app/" "raw_backup/$app/data/"
+    backup_permission "$app"
 }
 
 raw_backup_spefial() {
