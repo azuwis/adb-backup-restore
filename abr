@@ -105,6 +105,34 @@ restore() {
     pack "$app"
     $ADB install "apps/$app/a/base.apk" || true
     $ADB restore "pack/$app.ab"
+    restore_permission "$app"
+}
+
+restore_permission() {
+    app="$1"
+    test -z "$app" && usage
+    if [ -d "raw_backup/$app" ]
+    then
+        permission_file="raw_backup/$app/permission"
+    else
+        permission_file=permission/$app
+    fi
+    if [ ! -f "$permission_file" ]
+    then
+        echo "permission file not exists."
+        return
+    fi
+    for permission in $(get_permission "$app")
+    do
+        if ! grep -qFx "$permission" "$permission_file"
+        then
+            $ADB shell pm revoke "$app" "$permission"
+        fi
+    done
+    while read -r permission
+    do
+        $ADB shell -n pm grant "$app" "$permission"
+    done < "$permission_file"
 }
 
 adb_root() {
@@ -203,6 +231,7 @@ raw_restore() {
     password="$(rsync_password)"
     RSYNC_PASSWORD="$password" rsync -a --chown="$user" --exclude="/cache/" --exclude="/code_cache/" --exclude="/lib" "raw_backup/$app/data/" "${RSYNC_BASE_PATH}/data/data/$app/"
     $ADB shell restorecon -R "/data/data/$app"
+    restore_permission "$app"
 }
 
 rsync_password() {
