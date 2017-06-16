@@ -42,13 +42,12 @@ backup_permission() {
     app="$1"
     test -z "$app" && usage
     mkdir -p permission
+    permission="$(get_permission "$app")"
     if [ -d "raw_backup/$app" ]
     then
-        permission_file="raw_backup/$app/permission"
-    else
-        permission_file=permission/$app
+        echo "$permission" >"raw_backup/$app/permission"
     fi
-    get_permission "$app" >"$permission_file"
+    echo "$permission" >"permission/$app"
 }
 
 diff() {
