@@ -162,6 +162,12 @@ adb_unroot() {
     fi
 }
 
+captive_portal() {
+    $ADB shell settings put global captive_portal_server google.cn
+    $ADB shell settings put global captive_portal_http_url http://google.cn/generate_204
+    $ADB shell settings put global captive_portal_https_url https://google.cn/generate_204
+}
+
 start_rsync() {
     adb_root
     if ! adb shell test -e /mnt/secure/rsyncd.pid
