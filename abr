@@ -4,6 +4,7 @@ set -e
 
 ADB='adb -d'
 ABR_DIR="$(dirname "$(readlink -f "$0")")"
+RAW_BACKUP_DIR="raw_backup"
 RSYNC_LOCAL_PORT='1873'
 RSYNC_BASE_PATH="rsync://backup@127.0.0.1:${RSYNC_LOCAL_PORT}"
 
@@ -43,17 +44,24 @@ backup_permission() {
     test -z "$app" && usage
     mkdir -p permission
     permission="$(get_permission "$app")"
-    if [ -d "raw_backup/$app" ]
+    if [ -d "$RAW_BACKUP_DIR/$app" ]
     then
-        echo "$permission" >"raw_backup/$app/permission"
+        echo "$permission" >"$RAW_BACKUP_DIR/$app/permission"
     fi
     echo "$permission" >"permission/$app"
+}
+
+backup_permission_all() {
+    for app in $(installed -3)
+    do
+        backup_permission "$app"
+    done
 }
 
 diff() {
     backup="$1"
     test -z "$backup" && usage
-    command diff -u <(installed | sort) <(list "$backup" | sort)
+    command diff -u <(installed -3 | sort) <(list "$backup" | sort)
 }
 
 get_permission() {
@@ -110,9 +118,9 @@ restore() {
 restore_permission() {
     app="$1"
     test -z "$app" && usage
-    if [ -d "raw_backup/$app" ]
+    if [ -d "$RAW_BACKUP_DIR/$app" ]
     then
-        permission_file="raw_backup/$app/permission"
+        permission_file="$RAW_BACKUP_DIR/$app/permission"
     else
         permission_file=permission/$app
     fi
@@ -210,31 +218,31 @@ raw_backup() {
     test -z "$app" && usage
     start_rsync
     $ADB shell am force-stop "$app"
-    mkdir -p "raw_backup/$app"
+    mkdir -p "$RAW_BACKUP_DIR/$app"
     apk="$($ADB shell pm path "$app")"
     apk="${apk:8}"
     password="$(rsync_password)"
-    RSYNC_PASSWORD="$password" rsync "${RSYNC_BASE_PATH}${apk}" "raw_backup/$app/$app.apk"
-    RSYNC_PASSWORD="$password" rsync -a --exclude="/cache/" --exclude="/code_cache/" --exclude="/lib" "${RSYNC_BASE_PATH}/data/data/$app/" "raw_backup/$app/data/"
+    RSYNC_PASSWORD="$password" rsync "${RSYNC_BASE_PATH}${apk}" "$RAW_BACKUP_DIR/$app/$app.apk"
+    RSYNC_PASSWORD="$password" rsync -a --exclude="/cache/" --exclude="/code_cache/" --exclude="/lib" "${RSYNC_BASE_PATH}/data/data/$app/" "$RAW_BACKUP_DIR/$app/data/"
     backup_permission "$app"
 }
 
 raw_backup_spefial() {
     start_rsync
-    mkdir -p "raw_backup/spefial/data"
+    mkdir -p "$RAW_BACKUP_DIR/spefial/data"
     password="$(rsync_password)"
-    RSYNC_PASSWORD="$password" rsync -a --files-from="$ABR_DIR/spefial.list" "${RSYNC_BASE_PATH}/data/" "raw_backup/spefial/data/"
+    RSYNC_PASSWORD="$password" rsync -a --files-from="$ABR_DIR/spefial.list" "${RSYNC_BASE_PATH}/data/" "$RAW_BACKUP_DIR/spefial/data/"
 }
 
 raw_restore() {
     app="$1"
     test -z "$app" && usage
     start_rsync
-    $ADB install "raw_backup/$app/$app.apk" || true
+    $ADB install "$RAW_BACKUP_DIR/$app/$app.apk" || true
     $ADB shell am force-stop "$app"
     user="$($ADB shell stat -c '%U:%G' "/data/data/$app")"
     password="$(rsync_password)"
-    RSYNC_PASSWORD="$password" rsync -a --chown="$user" --exclude="/cache/" --exclude="/code_cache/" --exclude="/lib" "raw_backup/$app/data/" "${RSYNC_BASE_PATH}/data/data/$app/"
+    RSYNC_PASSWORD="$password" rsync -a --chown="$user" --exclude="/cache/" --exclude="/code_cache/" --exclude="/lib" "$RAW_BACKUP_DIR/$app/data/" "${RSYNC_BASE_PATH}/data/data/$app/"
     $ADB shell restorecon -R "/data/data/$app"
     restore_permission "$app"
 }
