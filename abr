@@ -75,11 +75,14 @@ backup_permission() {
     test -z "$app" && usage
     mkdir -p permission
     permission="$(get_permission "$app")"
-    if [ -d "$RAW_BACKUP_DIR/$app" ]
+    if [ -n "$permission" ]
     then
-        echo "$permission" >"$RAW_BACKUP_DIR/$app/permission"
+        if [ -d "$RAW_BACKUP_DIR/$app" ]
+        then
+            echo "$permission" >"$RAW_BACKUP_DIR/$app/permission"
+        fi
+        echo "$permission" >"permission/$app"
     fi
-    echo "$permission" >"permission/$app"
 }
 
 backup_permission_all() {
