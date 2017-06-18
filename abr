@@ -100,7 +100,7 @@ diff() {
 
 get_permission() {
     app="$1"
-    $ADB shell dumpsys package "$app" | awk -F':| +' '/runtime permissions:$/{flag=1;next}/(:$|^$)/{flag=0} {if(flag) print $2}'
+    $ADB shell dumpsys package "$app" | awk -F' +|:|,' '/runtime permissions:$/{flag=1;next}/(:$|^$)/{flag=0} {if(flag) {if($4=="granted=true") print $2}}'
 }
 
 list() {
