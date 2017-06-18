@@ -39,6 +39,25 @@ backup() {
     $ADB backup -f "$backup" -apk $app
 }
 
+backup_appops() {
+    app="$1"
+    test -z "$app" && usage
+    mkdir -p appops
+    appops="$($ADB shell cmd appops get "$app" | awk -F ' +|:|;' '{ if($3=="ignore") {print $1,$3} }' | grep -Fv READ_CALENDAR)"
+    if [ -d "$RAW_BACKUP_DIR/$app" ]
+    then
+        echo "$appops" >"$RAW_BACKUP_DIR/$app/appops"
+    fi
+    echo "$appops" >"appops/$app"
+}
+
+backup_appops_all() {
+    for app in $(installed -3)
+    do
+        backup_appops "$app"
+    done
+}
+
 backup_permission() {
     app="$1"
     test -z "$app" && usage
@@ -113,6 +132,27 @@ restore() {
     $ADB install "apps/$app/a/base.apk" || true
     $ADB restore "pack/$app.ab"
     restore_permission "$app"
+    restore_appops "$app"
+}
+
+restore_appops() {
+    app="$1"
+    test -z "$app" && usage
+    if [ -d "$RAW_BACKUP_DIR/$app" ]
+    then
+        appops_file="$RAW_BACKUP_DIR/$app/appops"
+    else
+        appops_file=appops/$app
+    fi
+    if [ ! -f "$appops_file" ]
+    then
+        echo "appops file not exists."
+        return
+    fi
+    while read -r op mode
+    do
+        $ADB shell -n cmd appops set "$app" "$op" "$mode"
+    done < "$appops_file"
 }
 
 restore_permission() {
@@ -225,6 +265,7 @@ raw_backup() {
     RSYNC_PASSWORD="$password" rsync "${RSYNC_BASE_PATH}${apk}" "$RAW_BACKUP_DIR/$app/$app.apk"
     RSYNC_PASSWORD="$password" rsync -a --exclude="/cache/" --exclude="/code_cache/" --exclude="/lib" "${RSYNC_BASE_PATH}/data/data/$app/" "$RAW_BACKUP_DIR/$app/data/"
     backup_permission "$app"
+    backup_appops "$app"
 }
 
 raw_backup_spefial() {
@@ -245,6 +286,7 @@ raw_restore() {
     RSYNC_PASSWORD="$password" rsync -a --chown="$user" --exclude="/cache/" --exclude="/code_cache/" --exclude="/lib" "$RAW_BACKUP_DIR/$app/data/" "${RSYNC_BASE_PATH}/data/data/$app/"
     $ADB shell restorecon -R "/data/data/$app"
     restore_permission "$app"
+    restore_appops "$app"
 }
 
 rsync_password() {
