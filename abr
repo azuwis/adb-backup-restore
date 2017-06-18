@@ -27,6 +27,15 @@ EOF
     exit 1
 }
 
+appops_set_ignore () {
+    app="$1"
+    test -z "$app" && usage
+    for op in $($ADB shell cmd appops get "$app" | awk -F: '{print $1}' | grep -Fv READ_CALENDAR)
+    do
+        $ADB shell cmd appops set "$app" "$op" ignore
+    done
+}
+
 backup() {
     if [ -n "$1" ]
     then
