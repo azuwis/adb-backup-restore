@@ -230,6 +230,23 @@ captive_portal() {
     $ADB shell settings put global captive_portal_https_url https://google.cn/generate_204
 }
 
+permission_backup() {
+    app="$1"
+    test -z "$app" && usage
+    permission="$($ADB shell dumpsys package "$app" | awk -F' +|:|,' '/runtime permissions:$/{flag=1;next}/(:$|^$)/{flag=0} {if(flag) {if($4=="granted=true") {print $2, "grant"} else if($4=="granted=false") {print $2, "revoke"}}}')"
+    if [ -n "$permission" ]
+    then
+        echo "$permission" >"$RAW_BACKUP_DIR/$app/permission"
+    fi
+}
+
+permission_backup_all() {
+    for app in $(adb_list_installed -3)
+    do
+        permission_backup "$app"
+    done
+}
+
 raw_backup() {
     app="$1"
     test -z "$app" && usage
