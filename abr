@@ -84,6 +84,11 @@ adb_backup() {
         backup="${ADB_BACKUP_DIR}/$(date +%Y-%m-%d).ab"
     fi
     $ADB backup -f "$backup" -apk $app
+    for app in $(adb_list_backup "$backup")
+    do
+        permission_backup "$app"
+        appops_backup "$app"
+    done
 }
 
 adb_list_backup() {
@@ -271,6 +276,7 @@ raw_backup() {
     password="$(rsync_password)"
     RSYNC_PASSWORD="$password" rsync "${RSYNC_BASE_PATH}${apk}" "$RAW_BACKUP_DIR/$app/$app.apk"
     RSYNC_PASSWORD="$password" rsync -a --exclude="/cache/" --exclude="/code_cache/" --exclude="/lib" "${RSYNC_BASE_PATH}/data/data/$app/" "$RAW_BACKUP_DIR/$app/data/"
+    permission_backup "$app"
     appops_backup "$app"
 }
 
