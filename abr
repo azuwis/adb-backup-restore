@@ -6,7 +6,8 @@ set -e
 
 ADB='adb -d'
 ABR_DIR="$(dirname "$(readlink -f "$0")")"
-RAW_BACKUP_DIR="raw_backup"
+ADB_BACKUP_DIR='adb_backup'
+RAW_BACKUP_DIR='raw_backup'
 RSYNC_LOCAL_PORT='1873'
 RSYNC_BASE_PATH="rsync://backup@127.0.0.1:${RSYNC_LOCAL_PORT}"
 
@@ -69,13 +70,14 @@ case "$action" in
 esac
 
 adb_backup() {
+    mkdir -p "$ADB_BACKUP_DIR"
     if [ -n "$1" ]
     then
         app=$*
-        backup="${app// /_}.ab"
+        backup="${ADB_BACKUP_DIR}/${app// /_}.ab"
     else
         app="-all"
-        backup="$(date +%Y-%m-%d).ab"
+        backup="${ADB_BACKUP_DIR}/$(date +%Y-%m-%d).ab"
     fi
     $ADB backup -f "$backup" -apk $app
 }
@@ -83,8 +85,10 @@ adb_backup() {
 adb_list_backup() {
     backup="$1"
     test -z "$backup" && usage
-    backup_list="list/$backup.list"
-    mkdir -p list
+    test -f "$backup" || usage
+    tmp_dir="$(dirname "$backup")/tmp"
+    mkdir -p "$tmp_dir"
+    backup_list="$tmp_dir/$(basename "$backup").list"
     if [ "$backup" -nt "$backup_list" ]
     then
         tail -n +5 "$backup" \
@@ -113,22 +117,24 @@ adb_list_nobackup() {
 }
 
 adb_pack() {
-    mkdir -p pack
-    app="$1"
-    test -z "$app" && usage
-    app="${app/#apps\//}"
-    (echo -ne 'ANDROID BACKUP\n1\n1\nnone\n' && tar --format=ustar -cf - -T "apps/$app.list" | zlib-flate -compress) >"pack/$app.ab"
+    dir="$1"
+    test -d "$dir" || usage
+    app="$(basename "$dir")"
+    tmp_dir="$(dirname "$dir")"
+    tmp_dir="$(dirname "$tmp_dir")"
+    (echo -ne 'ANDROID BACKUP\n1\n1\nnone\n' && tar -C "$tmp_dir" --format=ustar -cf - -T "${tmp_dir}/$app.list" | zlib-flate -compress) >"${tmp_dir}/$app.ab"
 }
 
 adb_restore() {
     backup="$1"
     app="$2"
-    test -z "$backup" && usage
+    test -f "$backup" || usage
     test -z "$app" && usage
     adb_unpack "$backup" "$app"
-    adb_pack "$app"
-    $ADB install "apps/$app/a/base.apk" || true
-    $ADB restore "pack/$app.ab"
+    tmp_dir="$(dirname "$backup")/tmp"
+    adb_pack "${tmp_dir}/apps/${app}"
+    $ADB install "${tmp_dir}/apps/${app}/a/base.apk" || true
+    $ADB restore "${tmp_dir}/${app}.ab"
     appops_restore "$app"
 }
 
@@ -150,9 +156,11 @@ adb_unpack() {
     backup="$1"
     app="$2"
     test -z "$backup" && usage
-    app_list="apps/$app.list"
-    mkdir -p apps
-    tail -n +5 "$backup" | zlib-flate -uncompress | tar -xvf - "apps/$app" > "$app_list"
+    test -f "$backup" || usage
+    tmp_dir="$(dirname "$backup")/tmp"
+    mkdir -p "$tmp_dir"
+    app_list="$tmp_dir/$app.list"
+    tail -n +5 "$backup" | zlib-flate -uncompress | tar -C "$tmp_dir" -xvf - "apps/$app" > "$app_list"
 }
 
 adb_unroot() {
