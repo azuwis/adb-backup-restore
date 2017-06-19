@@ -48,7 +48,7 @@ backup() {
     $ADB backup -f "$backup" -apk $app
 }
 
-backup_appops() {
+appops_backup() {
     app="$1"
     test -z "$app" && usage
     mkdir -p appops
@@ -63,10 +63,10 @@ backup_appops() {
     fi
 }
 
-backup_appops_all() {
+appops_backup_all() {
     for app in $(installed -3)
     do
-        backup_appops "$app"
+        appops_backup "$app"
     done
 }
 
@@ -119,10 +119,10 @@ restore() {
     pack "$app"
     $ADB install "apps/$app/a/base.apk" || true
     $ADB restore "pack/$app.ab"
-    restore_appops "$app"
+    appops_restore "$app"
 }
 
-restore_appops() {
+appops_restore {
     app="$1"
     test -z "$app" && usage
     if [ -d "$RAW_BACKUP_DIR/$app" ]
@@ -224,7 +224,7 @@ raw_backup() {
     password="$(rsync_password)"
     RSYNC_PASSWORD="$password" rsync "${RSYNC_BASE_PATH}${apk}" "$RAW_BACKUP_DIR/$app/$app.apk"
     RSYNC_PASSWORD="$password" rsync -a --exclude="/cache/" --exclude="/code_cache/" --exclude="/lib" "${RSYNC_BASE_PATH}/data/data/$app/" "$RAW_BACKUP_DIR/$app/data/"
-    backup_appops "$app"
+    appops_backup "$app"
 }
 
 raw_backup_spefial() {
@@ -244,7 +244,7 @@ raw_restore() {
     password="$(rsync_password)"
     RSYNC_PASSWORD="$password" rsync -a --chown="$user" --exclude="/cache/" --exclude="/code_cache/" --exclude="/lib" "$RAW_BACKUP_DIR/$app/data/" "${RSYNC_BASE_PATH}/data/data/$app/"
     $ADB shell restorecon -R "/data/data/$app"
-    restore_appops "$app"
+    appops_restore "$app"
 }
 
 rsync_password() {
