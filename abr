@@ -31,6 +31,8 @@ aoba|appops_backup_all            | backup appops of all apps
  aor|appops_restore <app>         | restore appops
 aosi|appops_set_ignore <app>      | set all appops to ignore
   cp|captive_portal               | tweak captive portal
+  pb|permission_backup <app>      | backup permission
+ pba|permission_backup_all        | backup permission of all apps
   rb|raw_backup <app>             | backup app by raw files
  rbs|raw_backup_spefial           | backup spefial files
   rr|raw_restore <app>            | restore app by raw files
@@ -62,6 +64,8 @@ case "$action" in
     aor)  action=appops_restore ;;
     aosi) action=appops_set_ignore ;;
     cp)   action=captive_portal ;;
+    pb)   action=permission_backup ;;
+    pba)  action=permission_backup_all ;;
     rb)   action=raw_backup ;;
     rbs)  action=raw_backup_spefial ;;
     rr)   action=raw_restore ;;
