@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# apt-get install adb qpdf rsync
+
 set -e
 
 ADB='adb -d'
