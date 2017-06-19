@@ -200,7 +200,7 @@ adb_unroot() {
 appops_backup() {
     app="$1"
     test -z "$app" && usage
-    appops="$($ADB shell cmd appops get "$app" | awk -F ' +|:|;' '{ if($3=="ignore" || $3=="allow") {print $1,$3} }' | grep -Fv READ_CALENDAR || true)"
+    appops="$($ADB shell cmd appops get "$app" | awk -F ' +|:|;' '{ if($3=="ignore" || $3=="allow") {print $1,$3} }' | grep -Ev '^(MONITOR_LOCATION|MONITOR_HIGH_POWER_LOCATION|NEIGHBORING_CELLS|READ_CALENDAR)' || true)"
     if [ -n "$appops" ]
     then
         mkdir -p "$RAW_BACKUP_DIR/$app"
