@@ -10,6 +10,7 @@ ADB_BACKUP_DIR='adb_backup'
 RAW_BACKUP_DIR='raw_backup'
 RSYNC_LOCAL_PORT='1873'
 RSYNC_BASE_PATH="rsync://backup@127.0.0.1:${RSYNC_LOCAL_PORT}"
+RSYNC_PASSWORD=''
 
 usage() {
     cat <<EOF
@@ -311,9 +312,12 @@ raw_restore() {
 }
 
 rsync_password() {
-    password="$($ADB shell cat /mnt/secure/rsyncd.secrets)"
-    password="${password:7}"
-    echo "${password}"
+    if [ -z "$RSYNC_PASSWORD" ]
+    then
+        RSYNC_PASSWORD="$($ADB shell cat /mnt/secure/rsyncd.secrets)"
+        RSYNC_PASSWORD="${RSYNC_PASSWORD:7}"
+    fi
+    echo "$RSYNC_PASSWORD"
 }
 
 rsync_start() {
