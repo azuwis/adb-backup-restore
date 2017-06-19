@@ -12,7 +12,7 @@ RSYNC_BASE_PATH="rsync://backup@127.0.0.1:${RSYNC_LOCAL_PORT}"
 
 usage() {
     cat <<EOF
-USAGE: $(basename "$0") [-hf] subcommand [options ...]
+USAGE: $(basename "$0") [-hx] subcommand [options ...]
 OPTIONS:
   -h        | help
 SUBCOMMANDS:
@@ -39,6 +39,12 @@ EOF
 }
 
 action="$1"
+if [ "$action" = '-x' ]
+then
+    set -x
+    shift
+    action="$1"
+fi
 case "$action" in
     ab)   action=adb_backup ;;
     alb)  action=adb_list_backup ;;
