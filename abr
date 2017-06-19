@@ -34,6 +34,7 @@ cp  | captive_portal               | tweak captive portal
 pb  | permission_backup <app>      | backup permission
 pba | permission_backup_all        | backup permission of all apps
 rb  | raw_backup <app>             | backup app by raw files
+rba | raw_backup_all               | backup all apps by raw files
 rbs | raw_backup_spefial           | backup spefial files
 rr  | raw_restore <app>            | restore app by raw files
 rss | rsync_start                  | start rsync
@@ -67,6 +68,7 @@ case "$action" in
     pb)   action=permission_backup ;;
     pba)  action=permission_backup_all ;;
     rb)   action=raw_backup ;;
+    rba)  action=raw_backup_all ;;
     rbs)  action=raw_backup_spefial ;;
     rr)   action=raw_restore ;;
     rss)  action=rsync_start ;;
@@ -278,6 +280,14 @@ raw_backup() {
     RSYNC_PASSWORD="$password" rsync -a --exclude="/cache/" --exclude="/code_cache/" --exclude="/lib" "${RSYNC_BASE_PATH}/data/data/$app/" "$RAW_BACKUP_DIR/$app/data/"
     permission_backup "$app"
     appops_backup "$app"
+}
+
+raw_backup_all() {
+    raw_backup_spefial
+    for app in $(adb_list_installed -3)
+    do
+        raw_backup "$app"
+    done
 }
 
 raw_backup_spefial() {
