@@ -16,15 +16,15 @@ USAGE: $(basename "$0") [-hf] subcommand [options ...]
 OPTIONS:
   -h        | help
 SUBCOMMANDS:
-  ab|adb_backup [<app...>] | create adb backup
-  d|diff <backup>          | diff apps from installed to backup
-  al|adb_list <backup>     | list apps in adb backup
-  i|installed [-3] [-f]    | list installed apps
-  ap|adb_pack <app>        | pack app into adb backup
-  r|restore <backup> <app> | restore app in adb backup
-  rb|raw_backup <app>      | backup app by raw files
-  rr|raw_restore <app>     | restore app by raw files
-  p|unpack <backup> <app>  | unpack app in adb backup
+  ab|adb_backup [<app...>]      | create adb backup
+  d|diff <backup>               | diff apps from installed to backup
+  al|adb_list <backup>          | list apps in adb backup
+  i|installed [-3] [-f]         | list installed apps
+  ap|adb_pack <app>             | pack app into adb backup
+  ar|adb_restore <backup> <app> | restore app in adb backup
+  rb|raw_backup <app>           | backup app by raw files
+  rr|raw_restore <app>          | restore app by raw files
+  p|unpack <backup> <app>       | unpack app in adb backup
 EOF
     exit 1
 }
@@ -112,7 +112,7 @@ adb_pack() {
     (echo -ne 'ANDROID BACKUP\n1\n1\nnone\n' && tar --format=ustar -cf - -T "apps/$app.list" | zlib-flate -compress) >"pack/$app.ab"
 }
 
-restore() {
+adb_restore() {
     backup="$1"
     app="$2"
     test -z "$backup" && usage
@@ -271,7 +271,7 @@ case "$action" in
     i) action=installed ;;
     al) action=adb_list ;;
     ap) action=adb_pack ;;
-    r) action=restore ;;
+    ar) action=adb_restore ;;
     rb) action=raw_backup ;;
     rr) action=raw_restore ;;
     u) action=unpack ;;
