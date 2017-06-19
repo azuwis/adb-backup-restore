@@ -18,7 +18,7 @@ SUBCOMMANDS:
   d|diff <backup>          | diff apps from installed to backup
   al|adb_list <backup>     | list apps in adb backup
   i|installed [-3] [-f]    | list installed apps
-  p|pack <app>             | pack app into adb backup
+  ap|adb_pack <app>        | pack app into adb backup
   r|restore <backup> <app> | restore app in adb backup
   rb|raw_backup <app>      | backup app by raw files
   rr|raw_restore <app>     | restore app by raw files
@@ -102,7 +102,7 @@ installed() {
     fi
 }
 
-pack() {
+adb_pack() {
     mkdir -p pack
     app="$1"
     test -z "$app" && usage
@@ -116,7 +116,7 @@ restore() {
     test -z "$backup" && usage
     test -z "$app" && usage
     unpack "$backup" "$app"
-    pack "$app"
+    adb_pack "$app"
     $ADB install "apps/$app/a/base.apk" || true
     $ADB restore "pack/$app.ab"
     appops_restore "$app"
@@ -268,7 +268,7 @@ case "$action" in
     d) action=diff ;;
     i) action=installed ;;
     al) action=adb_list ;;
-    p) action=pack ;;
+    ap) action=adb_pack ;;
     r) action=restore ;;
     rb) action=raw_backup ;;
     rr) action=raw_restore ;;
