@@ -17,27 +17,27 @@ USAGE: $(basename "$0") [-hx] subcommand [options ...]
 OPTIONS:
   -h        | help
 SUBCOMMANDS:
-  ab|adb_backup [<app...>]        | create adb backup
- alb|adb_list_backup <backup>     | list apps in adb backup
- ali|adb_list_installed [-3] [-f] | list installed apps
- aln|adb_list_nobackup <backup>   | list apps without ALLOW_BACKUP flag
-  ap|adb_pack <app>               | pack app into adb backup
-  ar|adb_restore <backup> <app>   | restore app in adb backup
- aro|adb_root                     | adb root
-  au|adb_unpack <backup> <app>    | unpack app in adb backup
- aur|adb_unroot                   | adb unroot
- aob|appops_backup <app>          | backup appops
-aoba|appops_backup_all            | backup appops of all apps
- aor|appops_restore <app>         | restore appops
-aosi|appops_set_ignore <app>      | set all appops to ignore
-  cp|captive_portal               | tweak captive portal
-  pb|permission_backup <app>      | backup permission
- pba|permission_backup_all        | backup permission of all apps
-  rb|raw_backup <app>             | backup app by raw files
- rbs|raw_backup_spefial           | backup spefial files
-  rr|raw_restore <app>            | restore app by raw files
- rss|rsync_start                  | start rsync
-rsst|rsync_stop                   | stop rsync
+ab  | adb_backup [<app...>]        | create adb backup
+alb | adb_list_backup <backup>     | list apps in adb backup
+ali | adb_list_installed [-3] [-f] | list installed apps
+aln | adb_list_nobackup <backup>   | list apps without ALLOW_BACKUP flag
+ap  | adb_pack <app>               | pack app into adb backup
+ar  | adb_restore <backup> <app>   | restore app in adb backup
+aro | adb_root                     | adb root
+au  | adb_unpack <backup> <app>    | unpack app in adb backup
+aur | adb_unroot                   | adb unroot
+aob | appops_backup <app>          | backup appops
+aoba| appops_backup_all            | backup appops of all apps
+aor | appops_restore <app>         | restore appops
+aosi| appops_set_ignore <app>      | set all appops to ignore
+cp  | captive_portal               | tweak captive portal
+pb  | permission_backup <app>      | backup permission
+pba | permission_backup_all        | backup permission of all apps
+rb  | raw_backup <app>             | backup app by raw files
+rbs | raw_backup_spefial           | backup spefial files
+rr  | raw_restore <app>            | restore app by raw files
+rss | rsync_start                  | start rsync
+rsst| rsync_stop                   | stop rsync
 EOF
     exit 1
 }
