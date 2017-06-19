@@ -19,6 +19,7 @@ SUBCOMMANDS:
   ab|adb_backup [<app...>]        | create adb backup
  alb|adb_list_backup <backup>     | list apps in adb backup
  ali|adb_list_installed [-3] [-f] | list installed apps
+ aln|adb_list_nobackup            | list apps without ALLOW_BACKUP flag
   ap|adb_pack <app>               | pack app into adb backup
   ar|adb_restore <backup> <app>   | restore app in adb backup
  aro|adb_root                     | adb root
@@ -49,6 +50,7 @@ case "$action" in
     ab)   action=adb_backup ;;
     alb)  action=adb_list_backup ;;
     ali)  action=adb_list_installed ;;
+    aln)  action=adb_list_nobackup ;;
     ap)   action=adb_pack ;;
     ar)   action=adb_restore ;;
     aro)  action=adb_root ;;
@@ -102,6 +104,12 @@ adb_list_installed() {
     else
         $ADB shell pm list packages "$@" | sed 's/^package://'
     fi
+}
+
+adb_list_nobackup() {
+    backup="$1"
+    test -z "$backup" && usage
+    adb_list_installed -3 | grep -vFxf <(adb_list_backup "$backup") | sort
 }
 
 adb_pack() {
