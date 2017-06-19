@@ -97,10 +97,10 @@ adb_list_backup() {
 }
 
 adb_list_installed() {
-    if $ADB shell cmd | grep -q 'cmd: not found'; then
-        $ADB shell pm list packages "$@" | sed 's/^package://'
-    else
+    if $ADB shell which cmd >/dev/null; then
         $ADB shell cmd package list packages "$@" | sed 's/^package://'
+    else
+        $ADB shell pm list packages "$@" | sed 's/^package://'
     fi
 }
 
