@@ -32,6 +32,7 @@ aur | adb_unroot                   | adb unroot
 aob | appops_backup <app>          | backup appops
 aoba| appops_backup_all            | backup appops of all apps
 aor | appops_restore <app>         | restore appops
+aora| appops_restore_all           | restore appops of all apps
 aosi| appops_set_ignore <app>      | set all appops to ignore
 cp  | captive_portal               | tweak captive portal
 pb  | permission_backup <app>      | backup permission
@@ -66,6 +67,7 @@ case "$action" in
     aob)  action=appops_backup ;;
     aoba) action=appops_backup_all ;;
     aor)  action=appops_restore ;;
+    aora) action=appops_restore_all ;;
     aosi) action=appops_set_ignore ;;
     cp)   action=captive_portal ;;
     pb)   action=permission_backup ;;
@@ -233,6 +235,13 @@ appops_restore() {
     do
         $ADB shell -n cmd appops set "$app" "$op" "$mode"
     done < "$appops_file"
+}
+
+appops_restore_all() {
+    for app in $(adb_list_installed -3)
+    do
+        appops_restore "$app"
+    done
 }
 
 appops_set_ignore () {
