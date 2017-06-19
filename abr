@@ -70,37 +70,10 @@ backup_appops_all() {
     done
 }
 
-backup_permission() {
-    app="$1"
-    test -z "$app" && usage
-    mkdir -p permission
-    permission="$(get_permission "$app")"
-    if [ -n "$permission" ]
-    then
-        if [ -d "$RAW_BACKUP_DIR/$app" ]
-        then
-            echo "$permission" >"$RAW_BACKUP_DIR/$app/permission"
-        fi
-        echo "$permission" >"permission/$app"
-    fi
-}
-
-backup_permission_all() {
-    for app in $(installed -3)
-    do
-        backup_permission "$app"
-    done
-}
-
 diff() {
     backup="$1"
     test -z "$backup" && usage
     command diff -u <(installed -3 | sort) <(list "$backup" | sort)
-}
-
-get_permission() {
-    app="$1"
-    $ADB shell dumpsys package "$app" | awk -F' +|:|,' '/runtime permissions:$/{flag=1;next}/(:$|^$)/{flag=0} {if(flag) {if($4=="granted=true") print $2}}'
 }
 
 list() {
@@ -167,33 +140,6 @@ restore_appops() {
     do
         $ADB shell -n cmd appops set "$app" "$op" "$mode"
     done < "$appops_file"
-}
-
-restore_permission() {
-    app="$1"
-    test -z "$app" && usage
-    if [ -d "$RAW_BACKUP_DIR/$app" ]
-    then
-        permission_file="$RAW_BACKUP_DIR/$app/permission"
-    else
-        permission_file=permission/$app
-    fi
-    if [ ! -f "$permission_file" ]
-    then
-        echo "permission file not exists."
-        return
-    fi
-    for permission in $(get_permission "$app")
-    do
-        if ! grep -qFx "$permission" "$permission_file"
-        then
-            $ADB shell pm revoke "$app" "$permission"
-        fi
-    done
-    while read -r permission
-    do
-        $ADB shell -n pm grant "$app" "$permission"
-    done < "$permission_file"
 }
 
 adb_root() {
