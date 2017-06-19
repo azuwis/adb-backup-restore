@@ -40,15 +40,6 @@ case "$action" in
     au) action=adb_unpack ;;
 esac
 
-appops_set_ignore () {
-    app="$1"
-    test -z "$app" && usage
-    for op in $($ADB shell cmd appops get "$app" | awk -F: '{print $1}' | grep -Fv READ_CALENDAR || true)
-    do
-        $ADB shell cmd appops set "$app" "$op" ignore
-    done
-}
-
 adb_backup() {
     if [ -n "$1" ]
     then
@@ -59,28 +50,6 @@ adb_backup() {
         backup="$(date +%Y-%m-%d).ab"
     fi
     $ADB backup -f "$backup" -apk $app
-}
-
-appops_backup() {
-    app="$1"
-    test -z "$app" && usage
-    mkdir -p appops
-    appops="$($ADB shell cmd appops get "$app" | awk -F ' +|:|;' '{ if($3=="ignore" || $3=="allow") {print $1,$3} }' | grep -Fv READ_CALENDAR || true)"
-    if [ -n "$appops" ]
-    then
-        if [ -d "$RAW_BACKUP_DIR/$app" ]
-        then
-            echo "$appops" >"$RAW_BACKUP_DIR/$app/appops"
-        fi
-        echo "$appops" >"appops/$app"
-    fi
-}
-
-appops_backup_all() {
-    for app in $(adb_list_installed -3)
-    do
-        appops_backup "$app"
-    done
 }
 
 adb_list_backup() {
@@ -129,6 +98,65 @@ adb_restore() {
     appops_restore "$app"
 }
 
+adb_root() {
+    $ADB wait-for-device
+    if [ "$($ADB shell whoami)" != 'root' ]
+    then
+        if [ "$($ADB shell getprop ro.adb.secure)" = 0 ]
+        then
+            $ADB root
+        else
+            $ADB shell 'su -c "stop adbd && setprop service.adb.root 1 && start adbd"'
+        fi
+        $ADB wait-for-device
+    fi
+}
+
+adb_unpack() {
+    backup="$1"
+    app="$2"
+    test -z "$backup" && usage
+    app_list="apps/$app.list"
+    mkdir -p apps
+    tail -n +5 "$backup" | zlib-flate -uncompress | tar -xvf - "apps/$app" > "$app_list"
+}
+
+adb_unroot() {
+    $ADB wait-for-device
+    if [ "$($ADB shell whoami)" = 'root' ]
+    then
+        if [ "$($ADB shell getprop ro.adb.secure)" = 0 ]
+        then
+            $ADB unroot
+        else
+            $ADB shell 'su -c "stop adbd && setprop service.adb.root 0 && start adbd"'
+        fi
+        $ADB wait-for-device
+    fi
+}
+
+appops_backup() {
+    app="$1"
+    test -z "$app" && usage
+    mkdir -p appops
+    appops="$($ADB shell cmd appops get "$app" | awk -F ' +|:|;' '{ if($3=="ignore" || $3=="allow") {print $1,$3} }' | grep -Fv READ_CALENDAR || true)"
+    if [ -n "$appops" ]
+    then
+        if [ -d "$RAW_BACKUP_DIR/$app" ]
+        then
+            echo "$appops" >"$RAW_BACKUP_DIR/$app/appops"
+        fi
+        echo "$appops" >"appops/$app"
+    fi
+}
+
+appops_backup_all() {
+    for app in $(adb_list_installed -3)
+    do
+        appops_backup "$app"
+    done
+}
+
 appops_restore() {
     app="$1"
     test -z "$app" && usage
@@ -149,75 +177,19 @@ appops_restore() {
     done < "$appops_file"
 }
 
-adb_root() {
-    $ADB wait-for-device
-    if [ "$($ADB shell whoami)" != 'root' ]
-    then
-        if [ "$($ADB shell getprop ro.adb.secure)" = 0 ]
-        then
-            $ADB root
-        else
-            $ADB shell 'su -c "stop adbd && setprop service.adb.root 1 && start adbd"'
-        fi
-        $ADB wait-for-device
-    fi
-}
-
-adb_unroot() {
-    $ADB wait-for-device
-    if [ "$($ADB shell whoami)" = 'root' ]
-    then
-        if [ "$($ADB shell getprop ro.adb.secure)" = 0 ]
-        then
-            $ADB unroot
-        else
-            $ADB shell 'su -c "stop adbd && setprop service.adb.root 0 && start adbd"'
-        fi
-        $ADB wait-for-device
-    fi
+appops_set_ignore () {
+    app="$1"
+    test -z "$app" && usage
+    for op in $($ADB shell cmd appops get "$app" | awk -F: '{print $1}' | grep -Fv READ_CALENDAR || true)
+    do
+        $ADB shell cmd appops set "$app" "$op" ignore
+    done
 }
 
 captive_portal() {
     $ADB shell settings put global captive_portal_server google.cn
     $ADB shell settings put global captive_portal_http_url http://google.cn/generate_204
     $ADB shell settings put global captive_portal_https_url https://google.cn/generate_204
-}
-
-rsync_start() {
-    adb_root
-    if ! adb shell test -e /mnt/secure/rsyncd.pid
-    then
-        $ADB shell 'cat >/mnt/secure/rsyncd.conf' <<EOF
-address = 127.0.0.1
-gid = root
-pid file = /mnt/secure/rsyncd.pid
-read only = false
-uid = root
-use chroot = false
-[data]
-  auth users = backup
-  hosts allow = 127.0.0.1
-  path = /data
-  secrets file = /mnt/secure/rsyncd.secrets
-EOF
-        password="$(LC_ALL=C tr -dc '[:graph:]' < /dev/urandom | head -c 16)"
-        $ADB shell 'cat >/mnt/secure/rsyncd.secrets' <<EOF
-backup:${password}
-EOF
-        $ADB shell chmod 600 /mnt/secure/rsyncd.conf /mnt/secure/rsyncd.secrets
-        $ADB shell -t rsync --daemon --config=/mnt/secure/rsyncd.conf
-    fi
-    adb forward "tcp:$RSYNC_LOCAL_PORT" tcp:873
-}
-
-rsync_stop() {
-    if adb shell test -e /mnt/secure/rsyncd.pid
-    then
-        $ADB shell 'kill $(cat /mnt/secure/rsyncd.pid)'
-    fi
-    $ADB shell rm /mnt/secure/rsyncd.conf /mnt/secure/rsyncd.secrets || true
-    $ADB forward --remove "tcp:$RSYNC_LOCAL_PORT" || true
-    adb_unroot
 }
 
 raw_backup() {
@@ -260,13 +232,41 @@ rsync_password() {
     echo "${password}"
 }
 
-adb_unpack() {
-    backup="$1"
-    app="$2"
-    test -z "$backup" && usage
-    app_list="apps/$app.list"
-    mkdir -p apps
-    tail -n +5 "$backup" | zlib-flate -uncompress | tar -xvf - "apps/$app" > "$app_list"
+rsync_start() {
+    adb_root
+    if ! adb shell test -e /mnt/secure/rsyncd.pid
+    then
+        $ADB shell 'cat >/mnt/secure/rsyncd.conf' <<EOF
+address = 127.0.0.1
+gid = root
+pid file = /mnt/secure/rsyncd.pid
+read only = false
+uid = root
+use chroot = false
+[data]
+  auth users = backup
+  hosts allow = 127.0.0.1
+  path = /data
+  secrets file = /mnt/secure/rsyncd.secrets
+EOF
+        password="$(LC_ALL=C tr -dc '[:graph:]' < /dev/urandom | head -c 16)"
+        $ADB shell 'cat >/mnt/secure/rsyncd.secrets' <<EOF
+backup:${password}
+EOF
+        $ADB shell chmod 600 /mnt/secure/rsyncd.conf /mnt/secure/rsyncd.secrets
+        $ADB shell -t rsync --daemon --config=/mnt/secure/rsyncd.conf
+    fi
+    adb forward "tcp:$RSYNC_LOCAL_PORT" tcp:873
+}
+
+rsync_stop() {
+    if adb shell test -e /mnt/secure/rsyncd.pid
+    then
+        $ADB shell 'kill $(cat /mnt/secure/rsyncd.pid)'
+    fi
+    $ADB shell rm /mnt/secure/rsyncd.conf /mnt/secure/rsyncd.secrets || true
+    $ADB forward --remove "tcp:$RSYNC_LOCAL_PORT" || true
+    adb_unroot
 }
 
 if type "$action" 2>/dev/null | grep -qF "function"
