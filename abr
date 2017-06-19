@@ -16,7 +16,7 @@ OPTIONS:
 SUBCOMMANDS:
   ab|adb_backup [<app...>] | create adb backup
   d|diff <backup>          | diff apps from installed to backup
-  l|list <backup>          | list apps in adb backup
+  al|adb_list <backup>     | list apps in adb backup
   i|installed [-3] [-f]    | list installed apps
   p|pack <app>             | pack app into adb backup
   r|restore <backup> <app> | restore app in adb backup
@@ -76,7 +76,7 @@ diff() {
     command diff -u <(installed -3 | sort) <(list "$backup" | sort)
 }
 
-list() {
+adb_list() {
     backup="$1"
     test -z "$backup" && usage
     backup_list="list/$backup.list"
@@ -267,7 +267,7 @@ case "$action" in
     ab) action=adb_backup ;;
     d) action=diff ;;
     i) action=installed ;;
-    l) action=list ;;
+    al) action=adb_list ;;
     p) action=pack ;;
     r) action=restore ;;
     rb) action=raw_backup ;;
