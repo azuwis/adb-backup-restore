@@ -29,6 +29,19 @@ EOF
     exit 1
 }
 
+action="$1"
+case "$action" in
+    ab) action=adb_backup ;;
+    d) action=diff ;;
+    ali) action=adb_list_installed ;;
+    alb) action=adb_list_backup ;;
+    ap) action=adb_pack ;;
+    ar) action=adb_restore ;;
+    rb) action=raw_backup ;;
+    rr) action=raw_restore ;;
+    au) action=adb_unpack ;;
+esac
+
 appops_set_ignore () {
     app="$1"
     test -z "$app" && usage
@@ -263,19 +276,6 @@ adb_unpack() {
     mkdir -p apps
     tail -n +5 "$backup" | zlib-flate -uncompress | tar -xvf - "apps/$app" > "$app_list"
 }
-
-action="$1"
-case "$action" in
-    ab) action=adb_backup ;;
-    d) action=diff ;;
-    ali) action=adb_list_installed ;;
-    alb) action=adb_list_backup ;;
-    ap) action=adb_pack ;;
-    ar) action=adb_restore ;;
-    rb) action=raw_backup ;;
-    rr) action=raw_restore ;;
-    au) action=adb_unpack ;;
-esac
 
 if type "$action" 2>/dev/null | grep -qF "function"
 then
