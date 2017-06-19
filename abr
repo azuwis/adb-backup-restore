@@ -16,15 +16,15 @@ USAGE: $(basename "$0") [-hf] subcommand [options ...]
 OPTIONS:
   -h        | help
 SUBCOMMANDS:
-  ab|adb_backup [<app...>]      | create adb backup
-  d|diff <backup>               | diff apps from installed to backup
-  al|adb_list <backup>          | list apps in adb backup
-  i|installed [-3] [-f]         | list installed apps
-  ap|adb_pack <app>             | pack app into adb backup
-  ar|adb_restore <backup> <app> | restore app in adb backup
-  rb|raw_backup <app>           | backup app by raw files
-  rr|raw_restore <app>          | restore app by raw files
-  au|adb_unpack <backup> <app>  | unpack app in adb backup
+  ab|adb_backup [<app...>]         | create adb backup
+  d|diff <backup>                  | diff apps from installed to backup
+  alb|adb_list_backup <backup>     | list apps in adb backup
+  ali|adb_list_installed [-3] [-f] | list installed apps
+  ap|adb_pack <app>                | pack app into adb backup
+  ar|adb_restore <backup> <app>    | restore app in adb backup
+  rb|raw_backup <app>              | backup app by raw files
+  rr|raw_restore <app>             | restore app by raw files
+  au|adb_unpack <backup> <app>     | unpack app in adb backup
 EOF
     exit 1
 }
@@ -66,7 +66,7 @@ appops_backup() {
 }
 
 appops_backup_all() {
-    for app in $(installed -3)
+    for app in $(adb_list_installed -3)
     do
         appops_backup "$app"
     done
@@ -75,10 +75,10 @@ appops_backup_all() {
 diff() {
     backup="$1"
     test -z "$backup" && usage
-    command diff -u <(installed -3 | sort) <(list "$backup" | sort)
+    command diff -u <(adb_list_installed -3 | sort) <(list "$backup" | sort)
 }
 
-adb_list() {
+adb_list_backup() {
     backup="$1"
     test -z "$backup" && usage
     backup_list="list/$backup.list"
@@ -96,7 +96,7 @@ adb_list() {
     fi
 }
 
-installed() {
+adb_list_installed() {
     if $ADB shell cmd | grep -q 'cmd: not found'; then
         $ADB shell pm list packages "$@" | sed 's/^package://'
     else
@@ -268,8 +268,8 @@ action="$1"
 case "$action" in
     ab) action=adb_backup ;;
     d) action=diff ;;
-    i) action=installed ;;
-    al) action=adb_list ;;
+    ali) action=adb_list_installed ;;
+    alb) action=adb_list_backup ;;
     ap) action=adb_pack ;;
     ar) action=adb_restore ;;
     rb) action=raw_backup ;;
