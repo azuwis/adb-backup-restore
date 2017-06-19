@@ -16,28 +16,48 @@ USAGE: $(basename "$0") [-hf] subcommand [options ...]
 OPTIONS:
   -h        | help
 SUBCOMMANDS:
-  ab|adb_backup [<app...>]         | create adb backup
-  alb|adb_list_backup <backup>     | list apps in adb backup
-  ali|adb_list_installed [-3] [-f] | list installed apps
-  ap|adb_pack <app>                | pack app into adb backup
-  ar|adb_restore <backup> <app>    | restore app in adb backup
-  rb|raw_backup <app>              | backup app by raw files
-  rr|raw_restore <app>             | restore app by raw files
-  au|adb_unpack <backup> <app>     | unpack app in adb backup
+  ab|adb_backup [<app...>]        | create adb backup
+ alb|adb_list_backup <backup>     | list apps in adb backup
+ ali|adb_list_installed [-3] [-f] | list installed apps
+  ap|adb_pack <app>               | pack app into adb backup
+  ar|adb_restore <backup> <app>   | restore app in adb backup
+ aro|adb_root                     | adb root
+  au|adb_unpack <backup> <app>    | unpack app in adb backup
+ aur|adb_unroot                   | adb unroot
+ aob|appops_backup <app>          | backup appops
+aoba|appops_backup_all            | backup appops of all apps
+ aor|appops_restore <app>         | restore appops
+aosi|appops_set_ignore <app>      | set all appops to ignore
+  cp|captive_portal               | tweak captive portal
+  rb|raw_backup <app>             | backup app by raw files
+ rbs|raw_backup_spefial           | backup spefial files
+  rr|raw_restore <app>            | restore app by raw files
+ rss|rsync_start                  | start rsync
+rsst|rsync_stop                   | stop rsync
 EOF
     exit 1
 }
 
 action="$1"
 case "$action" in
-    ab) action=adb_backup ;;
-    ali) action=adb_list_installed ;;
-    alb) action=adb_list_backup ;;
-    ap) action=adb_pack ;;
-    ar) action=adb_restore ;;
-    rb) action=raw_backup ;;
-    rr) action=raw_restore ;;
-    au) action=adb_unpack ;;
+    ab)   action=adb_backup ;;
+    alb)  action=adb_list_backup ;;
+    ali)  action=adb_list_installed ;;
+    ap)   action=adb_pack ;;
+    ar)   action=adb_restore ;;
+    aro)  action=adb_root ;;
+    au)   action=adb_unpack ;;
+    aur)  action=adb_unroot ;;
+    aob)  action=appops_backup ;;
+    aoba) action=appops_backup_all ;;
+    aor)  action=appops_restore ;;
+    aosi) action=appops_set_ignore ;;
+    cp)   action=captive_portal ;;
+    rb)   action=raw_backup ;;
+    rbs)  action=raw_backup_spefial ;;
+    rr)   action=raw_restore ;;
+    rss)  action=rsync_start ;;
+    rsst) action=rsync_stop ;;
 esac
 
 adb_backup() {
