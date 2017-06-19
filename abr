@@ -11,6 +11,8 @@ RAW_BACKUP_DIR='raw_backup'
 RSYNC_LOCAL_PORT='1873'
 RSYNC_BASE_PATH="rsync://backup@127.0.0.1:${RSYNC_LOCAL_PORT}"
 RSYNC_PASSWORD=''
+ADB_ROOT_FLAG=''
+RSYNC_START_FLAG=''
 
 usage() {
     cat <<EOF
@@ -151,6 +153,11 @@ adb_restore() {
 }
 
 adb_root() {
+    if [ -n "$ADB_ROOT_FLAG" ]
+    then
+        return
+    fi
+    ADB_ROOT_FLAG=1
     $ADB wait-for-device
     if [ "$($ADB shell whoami)" != 'root' ]
     then
@@ -187,6 +194,7 @@ adb_unroot() {
         fi
         $ADB wait-for-device
     fi
+    ADB_ROOT_FLAG=''
 }
 
 appops_backup() {
@@ -321,6 +329,11 @@ rsync_password() {
 }
 
 rsync_start() {
+    if [ -n "$RSYNC_START_FLAG" ]
+    then
+        return
+    fi
+    RSYNC_START_FLAG=1
     adb_root
     if ! adb shell test -e /mnt/secure/rsyncd.pid
     then
@@ -355,6 +368,7 @@ rsync_stop() {
     $ADB shell rm /mnt/secure/rsyncd.conf /mnt/secure/rsyncd.secrets || true
     $ADB forward --remove "tcp:$RSYNC_LOCAL_PORT" || true
     adb_unroot
+    RSYNC_START_FLAG=''
 }
 
 if type "$action" 2>/dev/null | grep -qF "function"
