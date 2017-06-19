@@ -17,7 +17,6 @@ OPTIONS:
   -h        | help
 SUBCOMMANDS:
   ab|adb_backup [<app...>]         | create adb backup
-  d|diff <backup>                  | diff apps from installed to backup
   alb|adb_list_backup <backup>     | list apps in adb backup
   ali|adb_list_installed [-3] [-f] | list installed apps
   ap|adb_pack <app>                | pack app into adb backup
@@ -32,7 +31,6 @@ EOF
 action="$1"
 case "$action" in
     ab) action=adb_backup ;;
-    d) action=diff ;;
     ali) action=adb_list_installed ;;
     alb) action=adb_list_backup ;;
     ap) action=adb_pack ;;
@@ -83,12 +81,6 @@ appops_backup_all() {
     do
         appops_backup "$app"
     done
-}
-
-diff() {
-    backup="$1"
-    test -z "$backup" && usage
-    command diff -u <(adb_list_installed -3 | sort) <(list "$backup" | sort)
 }
 
 adb_list_backup() {
