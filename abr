@@ -20,7 +20,7 @@ SUBCOMMANDS:
   ab|adb_backup [<app...>]        | create adb backup
  alb|adb_list_backup <backup>     | list apps in adb backup
  ali|adb_list_installed [-3] [-f] | list installed apps
- aln|adb_list_nobackup            | list apps without ALLOW_BACKUP flag
+ aln|adb_list_nobackup <backup>   | list apps without ALLOW_BACKUP flag
   ap|adb_pack <app>               | pack app into adb backup
   ar|adb_restore <backup> <app>   | restore app in adb backup
  aro|adb_root                     | adb root
