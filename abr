@@ -14,7 +14,7 @@ USAGE: $(basename "$0") [-hf] subcommand [options ...]
 OPTIONS:
   -h        | help
 SUBCOMMANDS:
-  b|backup [<app...>]      | create adb backup
+  ab|adb_backup [<app...>] | create adb backup
   d|diff <backup>          | diff apps from installed to backup
   l|list <backup>          | list apps in adb backup
   i|installed [-3] [-f]    | list installed apps
@@ -36,7 +36,7 @@ appops_set_ignore () {
     done
 }
 
-backup() {
+adb_backup() {
     if [ -n "$1" ]
     then
         app=$*
@@ -264,7 +264,7 @@ unpack() {
 
 action="$1"
 case "$action" in
-    b) action=backup ;;
+    ab) action=adb_backup ;;
     d) action=diff ;;
     i) action=installed ;;
     l) action=list ;;
