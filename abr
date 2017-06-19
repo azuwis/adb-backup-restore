@@ -205,7 +205,7 @@ EOF
     adb forward "tcp:$RSYNC_LOCAL_PORT" tcp:873
 }
 
-stop_rsync() {
+rsync_stop() {
     if adb shell test -e /mnt/secure/rsyncd.pid
     then
         $ADB shell 'kill $(cat /mnt/secure/rsyncd.pid)'
