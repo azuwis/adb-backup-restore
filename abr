@@ -284,7 +284,7 @@ raw_backup_spefial() {
     rsync_start
     mkdir -p "$RAW_BACKUP_DIR/spefial/data"
     password="$(rsync_password)"
-    RSYNC_PASSWORD="$password" rsync -av --ignore-missing-args --files-from="$ABR_DIR/spefial.list" "${RSYNC_BASE_PATH}/" "$RAW_BACKUP_DIR/spefial/"
+    RSYNC_PASSWORD="$password" rsync -a --ignore-missing-args --files-from="$ABR_DIR/spefial.list" "${RSYNC_BASE_PATH}/" "$RAW_BACKUP_DIR/spefial/"
 }
 
 raw_restore() {
