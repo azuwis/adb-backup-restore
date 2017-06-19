@@ -24,7 +24,7 @@ SUBCOMMANDS:
   ar|adb_restore <backup> <app> | restore app in adb backup
   rb|raw_backup <app>           | backup app by raw files
   rr|raw_restore <app>          | restore app by raw files
-  p|unpack <backup> <app>       | unpack app in adb backup
+  au|adb_unpack <backup> <app>  | unpack app in adb backup
 EOF
     exit 1
 }
@@ -117,7 +117,7 @@ adb_restore() {
     app="$2"
     test -z "$backup" && usage
     test -z "$app" && usage
-    unpack "$backup" "$app"
+    adb_unpack "$backup" "$app"
     adb_pack "$app"
     $ADB install "apps/$app/a/base.apk" || true
     $ADB restore "pack/$app.ab"
@@ -255,7 +255,7 @@ rsync_password() {
     echo "${password}"
 }
 
-unpack() {
+adb_unpack() {
     backup="$1"
     app="$2"
     test -z "$backup" && usage
@@ -274,7 +274,7 @@ case "$action" in
     ar) action=adb_restore ;;
     rb) action=raw_backup ;;
     rr) action=raw_restore ;;
-    u) action=unpack ;;
+    au) action=adb_unpack ;;
 esac
 
 if type "$action" 2>/dev/null | grep -qF "function"
