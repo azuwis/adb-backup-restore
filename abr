@@ -178,7 +178,7 @@ captive_portal() {
     $ADB shell settings put global captive_portal_https_url https://google.cn/generate_204
 }
 
-start_rsync() {
+rsync_start() {
     adb_root
     if ! adb shell test -e /mnt/secure/rsyncd.pid
     then
@@ -218,7 +218,7 @@ stop_rsync() {
 raw_backup() {
     app="$1"
     test -z "$app" && usage
-    start_rsync
+    rsync_start
     $ADB shell am force-stop "$app"
     mkdir -p "$RAW_BACKUP_DIR/$app"
     apk="$($ADB shell pm path "$app")"
@@ -230,7 +230,7 @@ raw_backup() {
 }
 
 raw_backup_spefial() {
-    start_rsync
+    rsync_start
     mkdir -p "$RAW_BACKUP_DIR/spefial/data"
     password="$(rsync_password)"
     RSYNC_PASSWORD="$password" rsync -av --ignore-missing-args --files-from="$ABR_DIR/spefial.list" "${RSYNC_BASE_PATH}/" "$RAW_BACKUP_DIR/spefial/"
@@ -239,7 +239,7 @@ raw_backup_spefial() {
 raw_restore() {
     app="$1"
     test -z "$app" && usage
-    start_rsync
+    rsync_start
     $ADB install "$RAW_BACKUP_DIR/$app/$app.apk" || true
     $ADB shell am force-stop "$app"
     user="$($ADB shell stat -c '%U:%G' "/data/data/$app")"
