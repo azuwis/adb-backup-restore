@@ -124,7 +124,7 @@ adb_restore() {
     appops_restore "$app"
 }
 
-appops_restore {
+appops_restore() {
     app="$1"
     test -z "$app" && usage
     if [ -d "$RAW_BACKUP_DIR/$app" ]
