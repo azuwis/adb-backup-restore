@@ -36,6 +36,9 @@ aor | appops_restore <app>         | restore appops
 aora| appops_restore_all           | restore appops of all apps
 aosi| appops_set_ignore <app>      | set all appops to ignore
 cp  | captive_portal               | tweak captive portal
+dw  | doze_whitelist               | list apps whitelisted in doze
+dwb | doze_whitelist_backup        | backup apps whitelisted in doze
+dwr | doze_whitelist_restore       | restore apps whitelisted in doze
 dab | disabled_app_backup          | backup list of disabled apps
 dar | disabled_app_restore         | backup list of disabled apps
 pab | pa_backup <app>              | backup permission and appops
@@ -277,6 +280,32 @@ disabled_app_restore() {
         do
             $ADB shell -n pm disable "$app"
         done < "$disabled_app_file"
+    fi
+}
+
+doze_whitelist() {
+    $ADB shell dumpsys deviceidle whitelist | awk -F, '{if ($1=="user") print $2}'
+}
+
+doze_whitelist_backup() {
+    local output
+    output="$(doze_whitelist)"
+    if [ -n "$output" ]
+    then
+        mkdir -p "$RAW_BACKUP_DIR/spefial"
+        echo "$output" >"$RAW_BACKUP_DIR/spefial/doze_whitelist"
+    fi
+}
+
+doze_whitelist_restore() {
+    local file app
+    file="$RAW_BACKUP_DIR/spefial/doze_whitelist"
+    if [ -e "$file" ]
+    then
+        while read -r app
+        do
+            $ADB shell -n dumpsys deviceidle whitelist "+${app}"
+        done < "$file"
     fi
 }
 
