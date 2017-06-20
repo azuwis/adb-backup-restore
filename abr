@@ -41,6 +41,8 @@ par | pa_restore <app>             | restore permission and appops
 para| pa_restore_all               | restore permission and appops of all apps
 pb  | permission_backup <app>      | backup permission
 pba | permission_backup_all        | backup permission of all apps
+pr  | permission_restore <app>     | restore permission
+pra | permission_restore_all       | restore permission of all apps
 rb  | raw_backup <app>             | backup app by raw files
 rba | raw_backup_all               | backup all apps by raw files
 rbs | raw_backup_spefial           | backup spefial files
@@ -80,6 +82,8 @@ case "$action" in
     para) action=pa_restore_all ;;
     pb)   action=permission_backup ;;
     pba)  action=permission_backup_all ;;
+    pr)   action=permission_restore ;;
+    pra)  action=permission_restore_all ;;
     rb)   action=raw_backup ;;
     rba)  action=raw_backup_all ;;
     rbs)  action=raw_backup_spefial ;;
@@ -318,6 +322,28 @@ permission_backup_all() {
     for app in $(adb_list_installed -3)
     do
         permission_backup "$app"
+    done
+}
+
+permission_restore() {
+    app="$1"
+    test -z "$app" && usage
+    for permission_file in "$RAW_BACKUP_DIR/$app/permission" "$RAW_BACKUP_DIR/$app/permission.revoke"
+    do
+        if [ -e "$permission_file" ]
+        then
+            while read -r perm mode
+            do
+                $ADB shell -n pm "$mode" "$app" "$perm"
+            done < "$permission_file"
+        fi
+    done
+}
+
+permission_restore_all() {
+    for app in $(adb_list_installed -3)
+    do
+        permission_restore "$app"
     done
 }
 
