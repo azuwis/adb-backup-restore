@@ -54,14 +54,6 @@ EOF
     exit 1
 }
 
-action="$1"
-if [ "$action" = '-x' ]
-then
-    set -x
-    shift
-    action="$1"
-fi
-
 subcommand() {
     local command full_command
     command="$1"
@@ -74,6 +66,13 @@ subcommand() {
     fi
 }
 
+action="$1"
+if [ "$action" = '-x' ]
+then
+    set -x
+    shift
+    action="$1"
+fi
 action="$(subcommand "$action")"
 
 adb_backup() {
