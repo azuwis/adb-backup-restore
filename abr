@@ -93,6 +93,7 @@ case "$action" in
 esac
 
 adb_backup() {
+    local app backup
     mkdir -p "$ADB_BACKUP_DIR"
     if [ -n "$1" ]
     then
@@ -110,6 +111,7 @@ adb_backup() {
 }
 
 adb_list_backup() {
+    local backup tmp_dir backup_list
     backup="$1"
     test -z "$backup" && usage
     test -f "$backup" || usage
@@ -138,12 +140,14 @@ adb_list_installed() {
 }
 
 adb_list_nobackup() {
+    local backup
     backup="$1"
     test -z "$backup" && usage
     adb_list_installed -3 | grep -vFxf <(adb_list_backup "$backup") | sort
 }
 
 adb_pack() {
+    local dir app tmp_dir
     dir="$1"
     test -d "$dir" || usage
     app="$(basename "$dir")"
@@ -153,6 +157,7 @@ adb_pack() {
 }
 
 adb_restore() {
+    local backup app tmp_dir
     backup="$1"
     app="$2"
     test -f "$backup" || usage
@@ -185,6 +190,7 @@ adb_root() {
 }
 
 adb_unpack() {
+    local backup app tmp_dir app_list
     backup="$1"
     app="$2"
     test -z "$backup" && usage
@@ -211,6 +217,7 @@ adb_unroot() {
 }
 
 appops_backup() {
+    local app appops
     app="$1"
     test -z "$app" && usage
     appops="$($ADB shell cmd appops get "$app" | awk -F ' +|:|;' '{ if($3=="ignore" || $3=="allow") {print $1,$3} }' | grep -Ev '^(MONITOR_LOCATION|MONITOR_HIGH_POWER_LOCATION|NEIGHBORING_CELLS|READ_CALENDAR) ' || true)"
@@ -222,6 +229,7 @@ appops_backup() {
 }
 
 appops_backup_all() {
+    local app
     for app in $(adb_list_installed -3)
     do
         appops_backup "$app"
@@ -229,6 +237,7 @@ appops_backup_all() {
 }
 
 appops_restore() {
+    local app appops_file op mode
     app="$1"
     test -z "$app" && usage
     if [ -d "$RAW_BACKUP_DIR/$app" ]
@@ -249,6 +258,7 @@ appops_restore() {
 }
 
 appops_restore_all() {
+    local app
     for app in $(adb_list_installed -3)
     do
         appops_restore "$app"
@@ -256,6 +266,7 @@ appops_restore_all() {
 }
 
 appops_set_ignore () {
+    local app op
     app="$1"
     test -z "$app" && usage
     for op in $($ADB shell cmd appops get "$app" | awk -F: '{print $1}' | grep -Fv READ_CALENDAR || true)
@@ -271,6 +282,7 @@ captive_portal() {
 }
 
 pa_backup() {
+    local app
     app="$1"
     test -z "$app" && usage
     permission_backup "$app"
@@ -278,6 +290,7 @@ pa_backup() {
 }
 
 pa_backup_all() {
+    local app
     for app in $(adb_list_installed -3)
     do
         pa_backup "$app"
@@ -285,6 +298,7 @@ pa_backup_all() {
 }
 
 pa_restore() {
+    local app
     app="$1"
     test -z "$app" && usage
     permission_restore "$app"
@@ -292,6 +306,7 @@ pa_restore() {
 }
 
 pa_restore_all() {
+    local app
     for app in $(adb_list_installed -3)
     do
         pa_restore "$app"
@@ -299,6 +314,7 @@ pa_restore_all() {
 }
 
 permission_backup() {
+    local app permission permission_file revoke
     app="$1"
     test -z "$app" && usage
     permission="$($ADB shell dumpsys package "$app" | awk -F' +|:|,' '/runtime permissions:$/{flag=1;next}/(:$|^$)/{flag=0} {if(flag) {if($4=="granted=true") {print $2, "grant"} else if($4=="granted=false") {print $2, "revoke"}}}')"
@@ -318,6 +334,7 @@ permission_backup() {
 }
 
 permission_backup_all() {
+    local app
     for app in $(adb_list_installed -3)
     do
         permission_backup "$app"
@@ -325,6 +342,7 @@ permission_backup_all() {
 }
 
 permission_restore() {
+    local app permission_file perm mode
     app="$1"
     test -z "$app" && usage
     for permission_file in "$RAW_BACKUP_DIR/$app/permission" "$RAW_BACKUP_DIR/$app/permission.revoke"
@@ -340,6 +358,7 @@ permission_restore() {
 }
 
 permission_restore_all() {
+    local app
     for app in $(adb_list_installed -3)
     do
         permission_restore "$app"
@@ -347,6 +366,7 @@ permission_restore_all() {
 }
 
 raw_backup() {
+    local app apk
     app="$1"
     test -z "$app" && usage
     rsync_start
@@ -361,6 +381,7 @@ raw_backup() {
 }
 
 raw_backup_all() {
+    local app
     raw_backup_spefial
     for app in $(adb_list_installed -3)
     do
@@ -376,6 +397,7 @@ raw_backup_spefial() {
 }
 
 raw_restore() {
+    local app user
     app="$1"
     test -z "$app" && usage
     rsync_start
@@ -397,6 +419,7 @@ rsync_password() {
 }
 
 rsync_start() {
+    local password
     if [ -n "$RSYNC_START_FLAG" ]
     then
         return
