@@ -60,37 +60,20 @@ then
     shift
     action="$1"
 fi
-case "$action" in
-    ab)   action=adb_backup ;;
-    alb)  action=adb_list_backup ;;
-    ali)  action=adb_list_installed ;;
-    aln)  action=adb_list_nobackup ;;
-    ap)   action=adb_pack ;;
-    ar)   action=adb_restore ;;
-    aro)  action=adb_root ;;
-    au)   action=adb_unpack ;;
-    aur)  action=adb_unroot ;;
-    aob)  action=appops_backup ;;
-    aoba) action=appops_backup_all ;;
-    aor)  action=appops_restore ;;
-    aora) action=appops_restore_all ;;
-    aosi) action=appops_set_ignore ;;
-    cp)   action=captive_portal ;;
-    pab)  action=pa_backup ;;
-    paba) action=pa_backup_all ;;
-    par)  action=pa_restore ;;
-    para) action=pa_restore_all ;;
-    pb)   action=permission_backup ;;
-    pba)  action=permission_backup_all ;;
-    pr)   action=permission_restore ;;
-    pra)  action=permission_restore_all ;;
-    rb)   action=raw_backup ;;
-    rba)  action=raw_backup_all ;;
-    rbs)  action=raw_backup_spefial ;;
-    rr)   action=raw_restore ;;
-    rss)  action=rsync_start ;;
-    rsst) action=rsync_stop ;;
-esac
+
+subcommand() {
+    local command full_command
+    command="$1"
+    full_command="$(usage | awk -F'[ |]+' '/^SUBCOMMANDS:/ {flag=1;next} {if(flag && $1=="'"$command"'") {print $2}}')"
+    if [ -n "$full_command" ]
+    then
+        echo "$full_command"
+    else
+        echo "$command"
+    fi
+}
+
+action="$(subcommand "$action")"
 
 adb_backup() {
     local app backup
