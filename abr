@@ -36,6 +36,8 @@ aor | appops_restore <app>         | restore appops
 aora| appops_restore_all           | restore appops of all apps
 aosi| appops_set_ignore <app>      | set all appops to ignore
 cp  | captive_portal               | tweak captive portal
+dab | disabled_app_backup          | backup list of disabled apps
+dar | disabled_app_restore         | backup list of disabled apps
 pab | pa_backup <app>              | backup permission and appops
 paba| pa_backup_all                | backup permission and appops of all apps
 par | pa_restore <app>             | restore permission and appops
@@ -254,6 +256,23 @@ captive_portal() {
     $ADB shell settings put global captive_portal_server google.cn
     $ADB shell settings put global captive_portal_http_url http://google.cn/generate_204
     $ADB shell settings put global captive_portal_https_url https://google.cn/generate_204
+}
+
+disabled_app_backup() {
+    mkdir -p "$RAW_BACKUP_DIR/spefial"
+    adb_list_installed -d >"$RAW_BACKUP_DIR/spefial/disabled_app"
+}
+
+disabled_app_restore() {
+    local disabled_app_file app
+    disabled_app_file="$RAW_BACKUP_DIR/spefial/disabled_app"
+    if [ -e "$disabled_app_file" ]
+    then
+        while read -r app
+        do
+            $ADB shell -n pm disable "$app"
+        done < "$disabled_app_file"
+    fi
 }
 
 foreach_3rd_party_app() {
