@@ -105,8 +105,7 @@ adb_backup() {
     $ADB backup -f "$backup" -apk $app
     for app in $(adb_list_backup "$backup")
     do
-        permission_backup "$app"
-        appops_backup "$app"
+        pa_backup "$app"
     done
 }
 
@@ -163,7 +162,7 @@ adb_restore() {
     adb_pack "${tmp_dir}/apps/${app}"
     $ADB install "${tmp_dir}/apps/${app}/a/base.apk" || true
     $ADB restore "${tmp_dir}/${app}.ab"
-    appops_restore "$app"
+    pa_restore "$app"
 }
 
 adb_root() {
@@ -358,8 +357,7 @@ raw_backup() {
     rsync_password
     RSYNC_PASSWORD="$RSYNC_PASSWORD" rsync "${RSYNC_BASE_PATH}${apk}" "$RAW_BACKUP_DIR/$app/$app.apk"
     RSYNC_PASSWORD="$RSYNC_PASSWORD" rsync -a --exclude="/cache/" --exclude="/code_cache/" --exclude="/lib" "${RSYNC_BASE_PATH}/data/data/$app/" "$RAW_BACKUP_DIR/$app/data/"
-    permission_backup "$app"
-    appops_backup "$app"
+    pa_backup "$app"
 }
 
 raw_backup_all() {
@@ -387,7 +385,7 @@ raw_restore() {
     rsync_password
     RSYNC_PASSWORD="$RSYNC_PASSWORD" rsync -a --chown="$user" --exclude="/cache/" --exclude="/code_cache/" --exclude="/lib" "$RAW_BACKUP_DIR/$app/data/" "${RSYNC_BASE_PATH}/data/data/$app/"
     $ADB shell restorecon -R "/data/data/$app"
-    appops_restore "$app"
+    pa_restore "$app"
 }
 
 rsync_password() {
