@@ -35,6 +35,10 @@ aor | appops_restore <app>         | restore appops
 aora| appops_restore_all           | restore appops of all apps
 aosi| appops_set_ignore <app>      | set all appops to ignore
 cp  | captive_portal               | tweak captive portal
+pab | pa_backup <app>              | backup permission and appops
+paba| pa_backup_all                | backup permission and appops of all apps
+par | pa_restore <app>             | restore permission and appops
+para| pa_restore_all               | restore permission and appops of all apps
 pb  | permission_backup <app>      | backup permission
 pba | permission_backup_all        | backup permission of all apps
 rb  | raw_backup <app>             | backup app by raw files
@@ -70,6 +74,10 @@ case "$action" in
     aora) action=appops_restore_all ;;
     aosi) action=appops_set_ignore ;;
     cp)   action=captive_portal ;;
+    pab)  action=pa_backup ;;
+    paba) action=pa_backup_all ;;
+    par)  action=pa_restore ;;
+    para) action=pa_restore_all ;;
     pb)   action=permission_backup ;;
     pba)  action=permission_backup_all ;;
     rb)   action=raw_backup ;;
@@ -257,6 +265,34 @@ captive_portal() {
     $ADB shell settings put global captive_portal_server google.cn
     $ADB shell settings put global captive_portal_http_url http://google.cn/generate_204
     $ADB shell settings put global captive_portal_https_url https://google.cn/generate_204
+}
+
+pa_backup() {
+    app="$1"
+    test -z "$app" && usage
+    permission_backup "$app"
+    appops_backup "$app"
+}
+
+pa_backup_all() {
+    for app in $(adb_list_installed -3)
+    do
+        pa_backup "$app"
+    done
+}
+
+pa_restore() {
+    app="$1"
+    test -z "$app" && usage
+    permission_restore "$app"
+    appops_restore "$app"
+}
+
+pa_restore_all() {
+    for app in $(adb_list_installed -3)
+    do
+        pa_restore "$app"
+    done
 }
 
 permission_backup() {
