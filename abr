@@ -19,6 +19,7 @@ usage() {
 USAGE: $(basename "$0") [-hx] subcommand [options ...]
 OPTIONS:
   -h                               | help
+  -x                               | debug
 SUBCOMMANDS:
 ab  | adb_backup [<app...>]        | create adb backup
 alb | adb_list_backup <backup>     | list apps in adb backup
