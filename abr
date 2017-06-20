@@ -259,8 +259,13 @@ captive_portal() {
 }
 
 disabled_app_backup() {
-    mkdir -p "$RAW_BACKUP_DIR/spefial"
-    adb_list_installed -d >"$RAW_BACKUP_DIR/spefial/disabled_app"
+    local disabled_app
+    disabled_app="$(adb_list_installed -d)"
+    if [ -n "$disabled_app" ]
+    then
+        mkdir -p "$RAW_BACKUP_DIR/spefial"
+        echo "$disabled_app" >"$RAW_BACKUP_DIR/spefial/disabled_app"
+    fi
 }
 
 disabled_app_restore() {
