@@ -229,11 +229,7 @@ appops_backup() {
 }
 
 appops_backup_all() {
-    local app
-    for app in $(adb_list_installed -3)
-    do
-        appops_backup "$app"
-    done
+    foreach_3rd_party_app appops_backup
 }
 
 appops_restore() {
@@ -258,11 +254,7 @@ appops_restore() {
 }
 
 appops_restore_all() {
-    local app
-    for app in $(adb_list_installed -3)
-    do
-        appops_restore "$app"
-    done
+    foreach_3rd_party_app appops_restore
 }
 
 appops_set_ignore () {
@@ -281,6 +273,17 @@ captive_portal() {
     $ADB shell settings put global captive_portal_https_url https://google.cn/generate_204
 }
 
+foreach_3rd_party_app() {
+    local app action
+    for app in $(adb_list_installed -3)
+    do
+        for action in "$@"
+        do
+            "$action" "$app"
+        done
+    done
+}
+
 pa_backup() {
     local app
     app="$1"
@@ -290,11 +293,7 @@ pa_backup() {
 }
 
 pa_backup_all() {
-    local app
-    for app in $(adb_list_installed -3)
-    do
-        pa_backup "$app"
-    done
+    foreach_3rd_party_app pa_backup
 }
 
 pa_restore() {
@@ -306,11 +305,7 @@ pa_restore() {
 }
 
 pa_restore_all() {
-    local app
-    for app in $(adb_list_installed -3)
-    do
-        pa_restore "$app"
-    done
+    foreach_3rd_party_app pa_restore
 }
 
 permission_backup() {
@@ -334,11 +329,7 @@ permission_backup() {
 }
 
 permission_backup_all() {
-    local app
-    for app in $(adb_list_installed -3)
-    do
-        permission_backup "$app"
-    done
+    foreach_3rd_party_app permission_backup
 }
 
 permission_restore() {
@@ -358,11 +349,7 @@ permission_restore() {
 }
 
 permission_restore_all() {
-    local app
-    for app in $(adb_list_installed -3)
-    do
-        permission_restore "$app"
-    done
+    foreach_3rd_party_app permission_restore
 }
 
 raw_backup() {
@@ -381,12 +368,8 @@ raw_backup() {
 }
 
 raw_backup_all() {
-    local app
     raw_backup_spefial
-    for app in $(adb_list_installed -3)
-    do
-        raw_backup "$app"
-    done
+    foreach_3rd_party_app raw_backup
 }
 
 raw_backup_spefial() {
