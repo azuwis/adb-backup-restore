@@ -221,19 +221,11 @@ appops_backup_all() {
 }
 
 appops_restore() {
-    local app appops_file op mode
     app="$1"
-    test -z "$app" && usage
-    appops_file="$RAW_BACKUP_DIR/$app/appops"
-    if [ ! -f "$appops_file" ]
-    then
-        echo "appops file not exists."
-        return
-    fi
-    while read -r op mode
+    general_restore "$app" "$RAW_BACKUP_DIR/$app/appops" | while read -r op mode
     do
         $ADB shell -n cmd appops set "$app" "$op" "$mode"
-    done < "$appops_file"
+    done
 }
 
 appops_restore_all() {
