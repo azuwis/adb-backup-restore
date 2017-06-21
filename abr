@@ -40,6 +40,7 @@ cp  | captive_portal               | tweak captive portal
 dw  | doze_whitelist               | list apps whitelisted in doze
 dwb | doze_whitelist_backup        | backup apps whitelisted in doze
 dwr | doze_whitelist_restore       | restore apps whitelisted in doze
+da  | disabled_app                 | list disabled apps
 dab | disabled_app_backup          | backup list of disabled apps
 dar | disabled_app_restore         | backup list of disabled apps
 pab | pa_backup <app>              | backup permission and appops
@@ -250,26 +251,19 @@ captive_portal() {
     $ADB shell settings put global captive_portal_https_url https://google.cn/generate_204
 }
 
+disabled_app() {
+    adb_list_installed -d
+}
+
 disabled_app_backup() {
-    local disabled_app
-    disabled_app="$(adb_list_installed -d)"
-    if [ -n "$disabled_app" ]
-    then
-        mkdir -p "$RAW_BACKUP_DIR/spefial"
-        echo "$disabled_app" >"$RAW_BACKUP_DIR/spefial/disabled_app"
-    fi
+    general_backup "$RAW_BACKUP_DIR/spefial/disabled_app"
 }
 
 disabled_app_restore() {
-    local disabled_app_file app
-    disabled_app_file="$RAW_BACKUP_DIR/spefial/disabled_app"
-    if [ -e "$disabled_app_file" ]
-    then
-        while read -r app
-        do
-            $ADB shell -n pm disable "$app"
-        done < "$disabled_app_file"
-    fi
+    general_restore "$RAW_BACKUP_DIR/spefial/disabled_app" | while read -r app
+    do
+        $ADB shell -n pm disable "$app"
+    done
 }
 
 doze_whitelist() {
