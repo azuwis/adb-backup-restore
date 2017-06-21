@@ -57,6 +57,7 @@ rb  | raw_backup <app>             | backup app by raw files
 rba | raw_backup_all               | backup all apps by raw files
 rbs | raw_backup_spefial           | backup spefial files
 rr  | raw_restore <app>            | restore app by raw files
+rrsb| raw_restore_spefial_bluetooth| restore bluetooth settings
 rrsw| raw_restore_spefial_wifi     | restore wifi settings
 rss | rsync_start                  | start rsync
 rsst| rsync_stop                   | stop rsync
@@ -438,6 +439,22 @@ raw_restore() {
     RSYNC_PASSWORD="$RSYNC_PASSWORD" rsync -a --chown="$user" --exclude="/cache/" --exclude="/code_cache/" --exclude="/lib" "$RAW_BACKUP_DIR/$app/data/" "${RSYNC_BASE_PATH}/data/data/$app/"
     $ADB shell restorecon -R "/data/data/$app"
     pa_restore "$app"
+}
+
+raw_restore_spefial_bluetooth() {
+    raw_restore_spefial_file /data/misc/bluedroid/bt_config.conf bluetooth net_bt_stack
+    $ADB shell killall com.android.bluetooth
+}
+
+raw_restore_spefial_file() {
+    local file owner group
+    file="$1"
+    owner="$2"
+    group="$3"
+    test -z "$file" || test -z "$owner" || test -z "$group" && usage
+    rsync_password
+    RSYNC_PASSWORD="$RSYNC_PASSWORD" rsync "${SPEFIAL_BACKUP_DIR}${file}" "${RSYNC_BASE_PATH}${file}"
+    $ADB shell chown "${owner}:${group}" "$file"
 }
 
 raw_restore_spefial_wifi() {
