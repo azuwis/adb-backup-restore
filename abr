@@ -47,9 +47,9 @@ pab | pa_backup <app>              | backup permission and appops
 paba| pa_backup_all                | backup permission and appops of all apps
 par | pa_restore <app>             | restore permission and appops
 para| pa_restore_all               | restore permission and appops of all apps
+p   | permission <app>             | list permission
 pb  | permission_backup <app>      | backup permission
 pba | permission_backup_all        | backup permission of all apps
-p   | permission <app>             | list permission
 pr  | permission_restore <app>     | restore permission
 pra | permission_restore_all       | restore permission of all apps
 rb  | raw_backup <app>             | backup app by raw files
