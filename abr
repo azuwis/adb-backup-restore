@@ -320,6 +320,20 @@ foreach_3rd_party_app() {
     done
 }
 
+general_backup() {
+    local app backup file output
+    app="$1"
+    backup="$2"
+    file="$3"
+    test -z "$app" && usage
+    output="$("$backup" "$app")"
+    if [ -n "$output" ]
+    then
+        mkdir -p "$(dirname "$file")"
+        echo "$output" >"$file"
+    fi
+}
+
 pa_backup() {
     local app
     app="$1"
