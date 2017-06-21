@@ -213,7 +213,9 @@ appops() {
 }
 
 appops_backup() {
-    general_backup "$1" appops "$RAW_BACKUP_DIR/$1/appops"
+    local app
+    app="$1"
+    general_backup "$app" appops "$RAW_BACKUP_DIR/$app/appops"
 }
 
 appops_backup_all() {
