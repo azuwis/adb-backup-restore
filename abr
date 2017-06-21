@@ -57,6 +57,7 @@ rb  | raw_backup <app>             | backup app by raw files
 rba | raw_backup_all               | backup all apps by raw files
 rbs | raw_backup_spefial           | backup spefial files
 rr  | raw_restore <app>            | restore app by raw files
+rrsw| raw_restore_spefial_wifi     | restore wifi settings
 rss | rsync_start                  | start rsync
 rsst| rsync_stop                   | stop rsync
 EOF
@@ -437,6 +438,22 @@ raw_restore() {
     RSYNC_PASSWORD="$RSYNC_PASSWORD" rsync -a --chown="$user" --exclude="/cache/" --exclude="/code_cache/" --exclude="/lib" "$RAW_BACKUP_DIR/$app/data/" "${RSYNC_BASE_PATH}/data/data/$app/"
     $ADB shell restorecon -R "/data/data/$app"
     pa_restore "$app"
+}
+
+raw_restore_spefial_wifi() {
+    local file settings networks
+    file="$SPEFIAL_BACKUP_DIR/data/misc/wifi/wpa_supplicant.conf"
+    if [ -f "$file" ]
+    then
+        settings="$(adb shell cat /data/misc/wifi/wpa_supplicant.conf | awk '/^network={/ {flag=1} {if(!flag) print}')"
+        networks="$(awk '/^network={/ {flag=1} flag' "$file")"
+        $ADB shell 'cat >/data/misc/wifi/wpa_supplicant.conf' <<EOF
+${settings}
+
+${networks}
+EOF
+        $ADB shell killall /system/bin/wpa_supplicant
+    fi
 }
 
 rsync_password() {
