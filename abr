@@ -48,6 +48,7 @@ par | pa_restore <app>             | restore permission and appops
 para| pa_restore_all               | restore permission and appops of all apps
 pb  | permission_backup <app>      | backup permission
 pba | permission_backup_all        | backup permission of all apps
+p   | permission <app>             | list permission
 pr  | permission_restore <app>     | restore permission
 pra | permission_restore_all       | restore permission of all apps
 rb  | raw_backup <app>             | backup app by raw files
@@ -360,11 +361,18 @@ pa_restore_all() {
     foreach_3rd_party_app pa_restore
 }
 
+permission() {
+    local app
+    app="$1"
+    test -z "$app" && usage
+    $ADB shell dumpsys package "$app" | awk -F' +|:|,' '/runtime permissions:$/{flag=1;next}/(:$|^$)/{flag=0} {if(flag) {if($4=="granted=true") {print $2, "grant"} else if($4=="granted=false") {print $2, "revoke"}}}'
+}
+
 permission_backup() {
     local app permission permission_file revoke
     app="$1"
     test -z "$app" && usage
-    permission="$($ADB shell dumpsys package "$app" | awk -F' +|:|,' '/runtime permissions:$/{flag=1;next}/(:$|^$)/{flag=0} {if(flag) {if($4=="granted=true") {print $2, "grant"} else if($4=="granted=false") {print $2, "revoke"}}}')"
+    permission="$(permission "$app")"
     permission_file="$RAW_BACKUP_DIR/$app/permission"
     if [ -n "$permission" ]
     then
