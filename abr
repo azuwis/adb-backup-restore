@@ -15,7 +15,7 @@ ADB_ROOT_FLAG=''
 RSYNC_START_FLAG=''
 
 usage() {
-    cat <<EOF
+    cat <<EOF >&2
 USAGE: $(basename "$0") [-hx] subcommand [options ...]
 OPTIONS:
   -h                               | help
@@ -63,7 +63,7 @@ EOF
 subcommand() {
     local command full_command
     command="$1"
-    full_command="$(usage | awk -F'[ |]+' '/^SUBCOMMANDS:/ {flag=1;next} {if(flag && $1=="'"$command"'") {print $2}}')"
+    full_command="$(usage 2>&1 | awk -F'[ |]+' '/^SUBCOMMANDS:/ {flag=1;next} {if(flag && $1=="'"$command"'") {print $2}}')"
     if [ -n "$full_command" ]
     then
         echo "$full_command"
