@@ -8,6 +8,7 @@ ADB='adb -d'
 ABR_DIR="$(dirname "$(readlink -f "$0")")"
 ADB_BACKUP_DIR='adb_backup'
 RAW_BACKUP_DIR='raw_backup'
+SPEFIAL_BACKUP_DIR="$RAW_BACKUP_DIR/spefial"
 RSYNC_LOCAL_PORT='1873'
 RSYNC_BASE_PATH="rsync://backup@127.0.0.1:${RSYNC_LOCAL_PORT}"
 RSYNC_PASSWORD=''
@@ -256,11 +257,11 @@ disabled_app() {
 }
 
 disabled_app_backup() {
-    general_backup "$RAW_BACKUP_DIR/spefial/disabled_app"
+    general_backup "$SPEFIAL_BACKUP_DIR/disabled_app"
 }
 
 disabled_app_restore() {
-    general_restore "$RAW_BACKUP_DIR/spefial/disabled_app" | while read -r app
+    general_restore "$SPEFIAL_BACKUP_DIR/disabled_app" | while read -r app
     do
         $ADB shell -n pm disable "$app"
     done
@@ -271,11 +272,11 @@ doze_whitelist() {
 }
 
 doze_whitelist_backup() {
-    general_backup "$RAW_BACKUP_DIR/spefial/doze_whitelist"
+    general_backup "$SPEFIAL_BACKUP_DIR/doze_whitelist"
 }
 
 doze_whitelist_restore() {
-    general_restore "$RAW_BACKUP_DIR/spefial/doze_whitelist" | while read -r app
+    general_restore "$SPEFIAL_BACKUP_DIR/doze_whitelist" | while read -r app
     do
         $ADB shell -n dumpsys deviceidle whitelist "+${app}"
     done
@@ -419,9 +420,9 @@ raw_backup_all() {
 
 raw_backup_spefial() {
     rsync_start
-    mkdir -p "$RAW_BACKUP_DIR/spefial/data"
+    mkdir -p "$SPEFIAL_BACKUP_DIR/data"
     rsync_password
-    RSYNC_PASSWORD="$RSYNC_PASSWORD" rsync -a --ignore-missing-args --files-from="$ABR_DIR/spefial.list" "${RSYNC_BASE_PATH}/data/" "$RAW_BACKUP_DIR/spefial/data/"
+    RSYNC_PASSWORD="$RSYNC_PASSWORD" rsync -a --ignore-missing-args --files-from="$ABR_DIR/spefial.list" "${RSYNC_BASE_PATH}/data/" "$SPEFIAL_BACKUP_DIR/data/"
 }
 
 raw_restore() {
