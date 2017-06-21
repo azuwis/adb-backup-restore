@@ -329,6 +329,19 @@ general_backup() {
     fi
 }
 
+general_restore() {
+    local app file
+    app="$1"
+    file="$2"
+    test -z "$app" && usage
+    if [ ! -f "$file" ]
+    then
+        echo "file not exists." >&2
+        return
+    fi
+    cat "$file"
+}
+
 pa_backup() {
     local app
     app="$1"
