@@ -214,9 +214,7 @@ appops() {
 }
 
 appops_backup() {
-    local app
-    app="$1"
-    general_backup "$app" appops "$RAW_BACKUP_DIR/$app/appops"
+    general_backup "$RAW_BACKUP_DIR/$1/appops" "$@"
 }
 
 appops_backup_all() {
@@ -311,12 +309,16 @@ foreach_3rd_party_app() {
 }
 
 general_backup() {
-    local app backup file output
-    app="$1"
-    backup="$2"
-    file="$3"
-    test -z "$app" && usage
-    output="$("$backup" "$app")"
+    local file caller func output
+    file="$1"
+    shift
+    caller="${FUNCNAME[1]}"
+    func=${caller%_backup}
+    if [ "$caller" = "$func" ]
+    then
+        return
+    fi
+    output="$("$func" "$@")"
     if [ -n "$output" ]
     then
         mkdir -p "$(dirname "$file")"
