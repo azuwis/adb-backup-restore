@@ -442,19 +442,18 @@ raw_restore() {
 }
 
 raw_restore_spefial_bluetooth() {
-    raw_restore_spefial_file /data/misc/bluedroid/bt_config.conf bluetooth net_bt_stack
+    raw_restore_spefial_file /data/misc/bluedroid/bt_config.conf
     $ADB shell killall com.android.bluetooth
 }
 
 raw_restore_spefial_file() {
-    local file owner group
+    local file user
     file="$1"
-    owner="$2"
-    group="$3"
-    test -z "$file" || test -z "$owner" || test -z "$group" && usage
+    user="$($ADB shell stat -c '%U:%G' "$file")"
+    test -z "$file" || test -z "$user" && usage
     rsync_password
     RSYNC_PASSWORD="$RSYNC_PASSWORD" rsync "${SPEFIAL_BACKUP_DIR}${file}" "${RSYNC_BASE_PATH}${file}"
-    $ADB shell chown "${owner}:${group}" "$file"
+    $ADB shell chown "$user" "$file"
 }
 
 raw_restore_spefial_wifi() {
