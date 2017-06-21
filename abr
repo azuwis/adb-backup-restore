@@ -224,12 +224,7 @@ appops_restore() {
     local app appops_file op mode
     app="$1"
     test -z "$app" && usage
-    if [ -d "$RAW_BACKUP_DIR/$app" ]
-    then
-        appops_file="$RAW_BACKUP_DIR/$app/appops"
-    else
-        appops_file=appops/$app
-    fi
+    appops_file="$RAW_BACKUP_DIR/$app/appops"
     if [ ! -f "$appops_file" ]
     then
         echo "appops file not exists."
