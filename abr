@@ -271,25 +271,14 @@ doze_whitelist() {
 }
 
 doze_whitelist_backup() {
-    local output
-    output="$(doze_whitelist)"
-    if [ -n "$output" ]
-    then
-        mkdir -p "$RAW_BACKUP_DIR/spefial"
-        echo "$output" >"$RAW_BACKUP_DIR/spefial/doze_whitelist"
-    fi
+    general_backup "$RAW_BACKUP_DIR/spefial/doze_whitelist"
 }
 
 doze_whitelist_restore() {
-    local file app
-    file="$RAW_BACKUP_DIR/spefial/doze_whitelist"
-    if [ -e "$file" ]
-    then
-        while read -r app
-        do
-            $ADB shell -n dumpsys deviceidle whitelist "+${app}"
-        done < "$file"
-    fi
+    general_restore "$RAW_BACKUP_DIR/spefial/doze_whitelist" | while read -r app
+    do
+        $ADB shell -n dumpsys deviceidle whitelist "+${app}"
+    done
 }
 
 foreach_3rd_party_app() {
