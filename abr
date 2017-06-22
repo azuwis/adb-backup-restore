@@ -462,9 +462,6 @@ raw_backup() {
 
 raw_backup_all() {
     raw_backup_spefial
-    app_uid_backup
-    disabled_app_backup
-    doze_whitelist_backup
     foreach_3rd_party_app raw_backup
 }
 
@@ -472,6 +469,10 @@ raw_backup_spefial() {
     mkdir -p "$SPEFIAL_BACKUP_DIR/data"
     rsync_start
     RSYNC_PASSWORD="$RSYNC_PASSWORD" rsync -a --ignore-missing-args --files-from="$ABR_DIR/spefial.list" "${RSYNC_BASE_PATH}/data/" "$SPEFIAL_BACKUP_DIR/data/"
+    account_app_backup
+    app_uid_backup
+    disabled_app_backup
+    doze_whitelist_backup
 }
 
 raw_restore() {
