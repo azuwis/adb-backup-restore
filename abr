@@ -552,6 +552,7 @@ if type "$action" 2>/dev/null | grep -qF "function"
 then
     shift
     $action "$@"
+    echo "done."
 else
     usage
 fi
