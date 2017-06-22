@@ -106,6 +106,13 @@ adb_backup() {
     done
 }
 
+adb_killall() {
+    local process
+    process="$1"
+    test -z "$process" && usage
+    $ADB shell killall "$process" || true
+}
+
 adb_list_backup() {
     local backup tmp_dir backup_list
     backup="$1"
@@ -443,12 +450,12 @@ raw_restore() {
 
 raw_restore_spefial_bluetooth() {
     raw_restore_spefial_file /data/misc/bluedroid/bt_config.conf
-    $ADB shell killall com.android.bluetooth
+    adb_killall com.android.bluetooth
 }
 
 raw_restore_spefial_calllog() {
     raw_restore_spefial_file /data/user/0/com.android.providers.contacts/databases/calllog.db
-    $ADB shell killall android.process.acore
+    adb_killall android.process.acore
 }
 
 raw_restore_spefial_file() {
@@ -468,8 +475,8 @@ raw_restore_spefial_file() {
 raw_restore_spefial_sms() {
     raw_restore_spefial_file /data/user_de/0/com.android.providers.telephony/databases/mmssms.db
     # raw_restore_spefial_file /data/user_de/0/com.android.providers.telephony/databases/telephony.db
-    $ADB shell killall com.android.phone
-    $ADB shell killall com.android.messaging
+    adb_killall com.android.phone
+    adb_killall com.android.messaging
 }
 
 raw_restore_spefial_wifi() {
@@ -484,7 +491,7 @@ ${settings}
 
 ${networks}
 EOF
-        $ADB shell killall /system/bin/wpa_supplicant
+        adb_killall /system/bin/wpa_supplicant
     fi
 }
 
