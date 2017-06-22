@@ -343,6 +343,15 @@ general_backup() {
     fi
 }
 
+pa() {
+    local app
+    app="$1"
+    test -z "$app" && usage
+    permission "$app"
+    echo
+    appops "$app"
+}
+
 pa_backup() {
     local app
     app="$1"
