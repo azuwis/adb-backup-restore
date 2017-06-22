@@ -61,6 +61,7 @@ rb  | raw_backup <app>             | backup app by raw files
 rba | raw_backup_all               | backup all apps by raw files
 rbs | raw_backup_spefial           | backup spefial files
 rr  | raw_restore <app>            | restore app by raw files
+rrsa| raw_restore_spefial_accounts | restore accounts
 rrsb| raw_restore_spefial_bluetooth| restore bluetooth settings
 rrsc| raw_restore_spefial_calllog  | restore calllog
 rrss| raw_restore_spefial_sms      | restore sms
@@ -486,6 +487,24 @@ raw_restore() {
     RSYNC_PASSWORD="$RSYNC_PASSWORD" rsync -a --chown="$user" --exclude="/cache/" --exclude="/code_cache/" --exclude="/lib" "$RAW_BACKUP_DIR/$app/data/" "${RSYNC_BASE_PATH}/data/data/$app/"
     $ADB shell restorecon -R "/data/data/$app"
     pa_restore "$app"
+}
+
+raw_restore_spefial_accounts() {
+    local account_app type origin_uid app uid
+    raw_restore_spefial_file /data/system_ce/0/accounts_ce.db
+    raw_restore_spefial_file /data/system_de/0/accounts_de.db
+    account_app="$(cat "$SPEFIAL_BACKUP_DIR/account_app")"
+    $ADB shell 'sqlite3 /data/system_de/0/accounts_de.db "select * from meta"' | while IFS='|' read -r type origin_uid
+    do
+        app="$(echo "$account_app" | awk '{if($1=="'"$type"'") {print $2; exit}}')"
+        uid="$($ADB shell -n stat -c %u "/data/data/$app")"
+        if [ "$uid" != "$origin_uid" ]
+        then
+            $ADB shell sqlite3 /data/system_de/0/accounts_de.db <<EOF
+update meta set value="$uid" where key="$type";
+EOF
+        fi
+    done
 }
 
 raw_restore_spefial_bluetooth() {
