@@ -403,12 +403,11 @@ raw_backup() {
     local app apk
     app="$1"
     test -z "$app" && usage
-    rsync_start
     $ADB shell am force-stop "$app"
     mkdir -p "$RAW_BACKUP_DIR/$app"
     apk="$($ADB shell pm path "$app")"
     apk="${apk:8}"
-    rsync_password
+    rsync_start
     RSYNC_PASSWORD="$RSYNC_PASSWORD" rsync "${RSYNC_BASE_PATH}${apk}" "$RAW_BACKUP_DIR/$app/$app.apk"
     RSYNC_PASSWORD="$RSYNC_PASSWORD" rsync -a --exclude="/cache/" --exclude="/code_cache/" --exclude="/lib" "${RSYNC_BASE_PATH}/data/data/$app/" "$RAW_BACKUP_DIR/$app/data/"
     pa_backup "$app"
@@ -422,9 +421,8 @@ raw_backup_all() {
 }
 
 raw_backup_spefial() {
-    rsync_start
     mkdir -p "$SPEFIAL_BACKUP_DIR/data"
-    rsync_password
+    rsync_start
     RSYNC_PASSWORD="$RSYNC_PASSWORD" rsync -a --ignore-missing-args --files-from="$ABR_DIR/spefial.list" "${RSYNC_BASE_PATH}/data/" "$SPEFIAL_BACKUP_DIR/data/"
 }
 
@@ -432,11 +430,10 @@ raw_restore() {
     local app user
     app="$1"
     test -z "$app" && usage
-    rsync_start
     $ADB install "$RAW_BACKUP_DIR/$app/$app.apk" || true
     $ADB shell am force-stop "$app"
     user="$($ADB shell stat -c '%U:%G' "/data/data/$app")"
-    rsync_password
+    rsync_start
     RSYNC_PASSWORD="$RSYNC_PASSWORD" rsync -a --chown="$user" --exclude="/cache/" --exclude="/code_cache/" --exclude="/lib" "$RAW_BACKUP_DIR/$app/data/" "${RSYNC_BASE_PATH}/data/data/$app/"
     $ADB shell restorecon -R "/data/data/$app"
     pa_restore "$app"
@@ -454,9 +451,10 @@ raw_restore_spefial_file() {
     user="$($ADB shell stat -c '%U:%G' "$file")"
     if [ -n "$user" ] && [ -f "${SPEFIAL_BACKUP_DIR}${file}" ]
     then
-        rsync_password
+        rsync_start
         RSYNC_PASSWORD="$RSYNC_PASSWORD" rsync "${SPEFIAL_BACKUP_DIR}${file}" "${RSYNC_BASE_PATH}${file}"
         $ADB shell chown "$user" "$file"
+        $ADB shell restorecon "$file"
     fi
 }
 
@@ -514,6 +512,7 @@ EOF
         $ADB shell chmod 600 /mnt/secure/rsyncd.conf /mnt/secure/rsyncd.secrets
         $ADB shell -t rsync --daemon --config=/mnt/secure/rsyncd.conf
     fi
+    rsync_password
     adb forward "tcp:$RSYNC_LOCAL_PORT" tcp:873
 }
 
