@@ -449,11 +449,14 @@ raw_restore_spefial_bluetooth() {
 raw_restore_spefial_file() {
     local file user
     file="$1"
+    test -z "$file" && usage
     user="$($ADB shell stat -c '%U:%G' "$file")"
-    test -z "$file" || test -z "$user" && usage
-    rsync_password
-    RSYNC_PASSWORD="$RSYNC_PASSWORD" rsync "${SPEFIAL_BACKUP_DIR}${file}" "${RSYNC_BASE_PATH}${file}"
-    $ADB shell chown "$user" "$file"
+    if [ -n "$user" ] && [ -f "${SPEFIAL_BACKUP_DIR}${file}" ]
+    then
+        rsync_password
+        RSYNC_PASSWORD="$RSYNC_PASSWORD" rsync "${SPEFIAL_BACKUP_DIR}${file}" "${RSYNC_BASE_PATH}${file}"
+        $ADB shell chown "$user" "$file"
+    fi
 }
 
 raw_restore_spefial_wifi() {
