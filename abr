@@ -59,6 +59,7 @@ rbs | raw_backup_spefial           | backup spefial files
 rr  | raw_restore <app>            | restore app by raw files
 rrsb| raw_restore_spefial_bluetooth| restore bluetooth settings
 rrsc| raw_restore_spefial_calllog  | restore calllog
+rrss| raw_restore_spefial_sms      | restore sms
 rrsw| raw_restore_spefial_wifi     | restore wifi settings
 rss | rsync_start                  | start rsync
 rsst| rsync_stop                   | stop rsync
@@ -462,6 +463,13 @@ raw_restore_spefial_file() {
         $ADB shell chown "$user" "$file"
         $ADB shell restorecon "$file"
     fi
+}
+
+raw_restore_spefial_sms() {
+    raw_restore_spefial_file /data/user_de/0/com.android.providers.telephony/databases/mmssms.db
+    # raw_restore_spefial_file /data/user_de/0/com.android.providers.telephony/databases/telephony.db
+    $ADB shell killall com.android.phone
+    $ADB shell killall com.android.messaging
 }
 
 raw_restore_spefial_wifi() {
