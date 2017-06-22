@@ -58,6 +58,7 @@ rba | raw_backup_all               | backup all apps by raw files
 rbs | raw_backup_spefial           | backup spefial files
 rr  | raw_restore <app>            | restore app by raw files
 rrsb| raw_restore_spefial_bluetooth| restore bluetooth settings
+rrsc| raw_restore_spefial_calllog  | restore calllog
 rrsw| raw_restore_spefial_wifi     | restore wifi settings
 rss | rsync_start                  | start rsync
 rsst| rsync_stop                   | stop rsync
@@ -442,6 +443,11 @@ raw_restore() {
 raw_restore_spefial_bluetooth() {
     raw_restore_spefial_file /data/misc/bluedroid/bt_config.conf
     $ADB shell killall com.android.bluetooth
+}
+
+raw_restore_spefial_calllog() {
+    raw_restore_spefial_file /data/user/0/com.android.providers.contacts/databases/calllog.db
+    $ADB shell killall android.process.acore
 }
 
 raw_restore_spefial_file() {
