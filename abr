@@ -228,7 +228,7 @@ appops_backup_all() {
 appops_restore() {
     app="$1"
     test -z "$app" && usage
-    general_restore "$RAW_BACKUP_DIR/$app/appops" | while read -r op mode
+    cat_file "$RAW_BACKUP_DIR/$app/appops" | while read -r op mode
     do
         $ADB shell -n cmd appops set "$app" "$op" "$mode"
     done
@@ -254,6 +254,17 @@ captive_portal() {
     $ADB shell settings put global captive_portal_https_url https://google.cn/generate_204
 }
 
+cat_file() {
+    local file
+    file="$1"
+    if [ ! -f "$file" ]
+    then
+        echo "file not exists." >&2
+        return
+    fi
+    cat "$file"
+}
+
 disabled_app() {
     adb_list_installed -d
 }
@@ -263,7 +274,7 @@ disabled_app_backup() {
 }
 
 disabled_app_restore() {
-    general_restore "$SPEFIAL_BACKUP_DIR/disabled_app" | while read -r app
+    cat_file "$SPEFIAL_BACKUP_DIR/disabled_app" | while read -r app
     do
         $ADB shell -n pm disable "$app"
     done
@@ -278,7 +289,7 @@ doze_whitelist_backup() {
 }
 
 doze_whitelist_restore() {
-    general_restore "$SPEFIAL_BACKUP_DIR/doze_whitelist" | while read -r app
+    cat_file "$SPEFIAL_BACKUP_DIR/doze_whitelist" | while read -r app
     do
         $ADB shell -n dumpsys deviceidle whitelist "+${app}"
     done
@@ -311,17 +322,6 @@ general_backup() {
         mkdir -p "$(dirname "$file")"
         echo "$output" >"$file"
     fi
-}
-
-general_restore() {
-    local file
-    file="$1"
-    if [ ! -f "$file" ]
-    then
-        echo "file not exists." >&2
-        return
-    fi
-    cat "$file"
 }
 
 pa_backup() {
