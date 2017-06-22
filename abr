@@ -22,6 +22,8 @@ OPTIONS:
   -h                               | help
   -x                               | debug
 SUBCOMMANDS:
+aa  | account_app                  | list app for account auth type
+aab | account_app_backup           | backup app for account auth type
 ab  | adb_backup [<app...>]        | create adb backup
 alb | adb_list_backup <backup>     | list apps in adb backup
 ali | adb_list_installed [-3] [-f] | list installed apps
@@ -89,6 +91,23 @@ then
     action="$1"
 fi
 action="$(subcommand "$action")"
+
+account_app() {
+    local app_uid type uid app
+    app_uid="$(app_uid)"
+    $ADB shell 'sqlite3 /data/system_de/0/accounts_de.db "select * from meta"' | while IFS='|' read -r type uid
+    do
+        app="$(echo "$app_uid" | awk '{if($1=="'"$uid"'") {print $2; exit}}')"
+        if [ -n "$app" ]
+        then
+            echo "$type $app"
+        fi
+    done
+}
+
+account_app_backup() {
+    general_backup "$SPEFIAL_BACKUP_DIR/account_app"
+}
 
 adb_backup() {
     local app backup
