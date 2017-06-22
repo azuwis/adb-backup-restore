@@ -31,6 +31,8 @@ ar  | adb_restore <backup> <app>   | restore app in adb backup
 aro | adb_root                     | adb root
 au  | adb_unpack <backup> <app>    | unpack app in adb backup
 aur | adb_unroot                   | adb unroot
+apu | app_uid                      | list app uid
+apub| app_uid_backup               | backup app uid
 ao  | appops <app>                 | list appops
 aob | appops_backup <app>          | backup appops
 aoba| appops_backup_all            | backup appops of all apps
@@ -217,6 +219,14 @@ adb_unroot() {
         $ADB wait-for-device
     fi
     ADB_ROOT_FLAG=''
+}
+
+app_uid() {
+    $ADB shell ls -ln /data/data | awk '{print $3,$8}' | sort -n
+}
+
+app_uid_backup() {
+    general_backup "$SPEFIAL_BACKUP_DIR/app_uid"
 }
 
 appops() {
@@ -424,6 +434,7 @@ raw_backup() {
 
 raw_backup_all() {
     raw_backup_spefial
+    app_uid_backup
     disabled_app_backup
     doze_whitelist_backup
     foreach_3rd_party_app raw_backup
