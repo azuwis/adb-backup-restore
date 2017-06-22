@@ -480,7 +480,7 @@ rsync_password() {
     if [ -z "$RSYNC_PASSWORD" ]
     then
         RSYNC_PASSWORD="$($ADB shell cat /mnt/secure/rsyncd.secrets)"
-        RSYNC_PASSWORD="${RSYNC_PASSWORD:7}"
+        RSYNC_PASSWORD="${RSYNC_PASSWORD#*:}"
     fi
 }
 
