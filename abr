@@ -417,6 +417,7 @@ raw_backup() {
 raw_backup_all() {
     raw_backup_spefial
     disabled_app_backup
+    doze_whitelist_backup
     foreach_3rd_party_app raw_backup
 }
 
