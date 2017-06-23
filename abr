@@ -517,8 +517,8 @@ raw_restore_spefial_accounts() {
     while IFS='|' read -r type origin_uid
     do
         app="$(csv_get "$account_app" "$type")"
-        uid="$($ADB shell -n stat -c %u "/data/data/$app")"
-        if [ "$uid" != "$origin_uid" ]
+        uid="$($ADB shell -n stat -c %u "/data/data/$app" 2>/dev/null || true)"
+        if [ -n "$uid" ] && [ "$uid" != "$origin_uid" ]
         then
             restart=1
             $ADB shell sqlite3 /data/system_de/0/accounts_de.db <<EOF
