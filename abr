@@ -623,7 +623,8 @@ EOF
 backup:${password}
 EOF
         $ADB shell chmod 600 /mnt/secure/rsyncd.conf /mnt/secure/rsyncd.secrets
-        $ADB shell -t rsync --daemon --config=/mnt/secure/rsyncd.conf
+        $ADB shell -t -t rsync --daemon --no-detach --config=/mnt/secure/rsyncd.conf &
+        disown
     fi
     rsync_password
     adb forward "tcp:$RSYNC_LOCAL_PORT" tcp:873
