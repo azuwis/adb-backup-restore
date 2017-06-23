@@ -298,7 +298,7 @@ cat_file() {
     file="$1"
     if [ ! -f "$file" ]
     then
-        echo "file not exists." >&2
+        echoerr "file not exists."
         return
     fi
     cat "$file"
@@ -346,6 +346,10 @@ doze_whitelist_restore() {
     do
         $ADB shell -n dumpsys deviceidle whitelist "+${app}"
     done
+}
+
+echoerr() {
+    >&2 echo "$@"
 }
 
 foreach_3rd_party_app() {
@@ -631,7 +635,7 @@ if type "$action" 2>/dev/null | grep -qF "function"
 then
     shift
     $action "$@"
-    echo "done."
+    echoerr "done."
 else
     usage
 fi
