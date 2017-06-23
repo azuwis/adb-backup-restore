@@ -205,13 +205,18 @@ adb_root() {
     $ADB wait-for-device
     if [ "$($ADB shell whoami)" != 'root' ]
     then
-        if [ "$($ADB shell getprop ro.adb.secure)" = 0 ]
-        then
-            $ADB root
-        else
-            $ADB shell 'su -c "stop adbd && setprop service.adb.root 1 && start adbd"'
-        fi
+        $ADB root
         $ADB wait-for-device
+        if [ "$($ADB shell whoami)" != 'root' ]
+        then
+            $ADB shell 'su -c "stop adbd && setprop service.adb.root 1 && start adbd"' || true
+            $ADB wait-for-device
+            if [ "$($ADB shell whoami)" != 'root' ]
+            then
+                echoerr 'can not get root access.'
+                exit 1
+            fi
+        fi
     fi
 }
 
