@@ -69,6 +69,7 @@ rrss| raw_restore_spefial_sms      | restore sms
 rrsw| raw_restore_spefial_wifi     | restore wifi settings
 rss | rsync_start                  | start rsync
 rsst| rsync_stop                   | stop rsync
+sb  | settings_backup              | backup settings
 EOF
     exit 1
 }
@@ -644,6 +645,36 @@ rsync_stop() {
     $ADB forward --remove "tcp:$RSYNC_LOCAL_PORT" || true
     adb_unroot
     RSYNC_START_FLAG=''
+}
+
+settings_backup() {
+    settings_global_backup
+    settings_secure_backup
+    settings_system_backup
+}
+
+settings_global() {
+    $ADB shell settings list global
+}
+
+settings_global_backup() {
+    general_backup "$SPEFIAL_BACKUP_DIR/settings_global"
+}
+
+settings_secure() {
+    $ADB shell settings list secure
+}
+
+settings_secure_backup() {
+    general_backup "$SPEFIAL_BACKUP_DIR/settings_secure"
+}
+
+settings_system() {
+    $ADB shell settings list system
+}
+
+settings_system_backup() {
+    general_backup "$SPEFIAL_BACKUP_DIR/settings_system"
 }
 
 if type "$action" 2>/dev/null | grep -qF "function"
