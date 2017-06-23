@@ -98,7 +98,7 @@ account_app() {
     app_uid="$(app_uid)"
     $ADB shell 'sqlite3 /data/system_de/0/accounts_de.db "select * from meta"' | while IFS='|' read -r type uid
     do
-        app="$(echo "$app_uid" | awk '{if($1=="'"$uid"'") {print $2; exit}}')"
+        app="$(csv_get "$app_uid" "$uid")"
         if [ -n "$app" ]
         then
             echo "$type $app"
@@ -304,6 +304,20 @@ cat_file() {
     cat "$file"
 }
 
+csv_get() {
+    local csv key k v
+    csv="$1"
+    key="$2"
+    while read -r k v
+    do
+        if [ "$k" == "$key" ]
+        then
+            echo "$v"
+            return
+        fi
+    done <<<"$csv"
+}
+
 disabled_app() {
     adb_list_installed -d
 }
@@ -496,7 +510,7 @@ raw_restore_spefial_accounts() {
     account_app="$(cat "$SPEFIAL_BACKUP_DIR/account_app")"
     $ADB shell 'sqlite3 /data/system_de/0/accounts_de.db "select * from meta"' | while IFS='|' read -r type origin_uid
     do
-        app="$(echo "$account_app" | awk '{if($1=="'"$type"'") {print $2; exit}}')"
+        app="$(csv_get "$account_app" "$type")"
         uid="$($ADB shell -n stat -c %u "/data/data/$app")"
         if [ "$uid" != "$origin_uid" ]
         then
