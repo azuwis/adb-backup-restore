@@ -504,21 +504,27 @@ raw_restore() {
 }
 
 raw_restore_spefial_accounts() {
-    local account_app type origin_uid app uid
+    local restart account_app type origin_uid app uid
+    restart=''
     raw_restore_spefial_file /data/system_ce/0/accounts_ce.db
     raw_restore_spefial_file /data/system_de/0/accounts_de.db
     account_app="$(cat "$SPEFIAL_BACKUP_DIR/account_app")"
-    $ADB shell 'sqlite3 /data/system_de/0/accounts_de.db "select * from meta"' | while IFS='|' read -r type origin_uid
+    while IFS='|' read -r type origin_uid
     do
         app="$(csv_get "$account_app" "$type")"
         uid="$($ADB shell -n stat -c %u "/data/data/$app")"
         if [ "$uid" != "$origin_uid" ]
         then
+            restart=1
             $ADB shell sqlite3 /data/system_de/0/accounts_de.db <<EOF
 update meta set value="$uid" where key="$type";
 EOF
         fi
-    done
+    done < <($ADB shell 'sqlite3 /data/system_de/0/accounts_de.db "select * from meta"')
+    if [ -n "$restart" ]
+    then
+        $ADB shell restart
+    fi
 }
 
 raw_restore_spefial_bluetooth() {
