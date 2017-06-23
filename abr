@@ -481,7 +481,10 @@ raw_backup() {
     apk="$($ADB shell pm path "$app")"
     apk="${apk:8}"
     rsync_start
-    RSYNC_PASSWORD="$RSYNC_PASSWORD" rsync "${RSYNC_BASE_PATH}${apk}" "$RAW_BACKUP_DIR/$app/$app.apk"
+    if [ "${apk:0:6}" == '/data/' ]
+    then
+        RSYNC_PASSWORD="$RSYNC_PASSWORD" rsync "${RSYNC_BASE_PATH}${apk}" "$RAW_BACKUP_DIR/$app/$app.apk"
+    fi
     RSYNC_PASSWORD="$RSYNC_PASSWORD" rsync -a --exclude="/cache/" --exclude="/code_cache/" --exclude="/lib" "${RSYNC_BASE_PATH}/data/data/$app/" "$RAW_BACKUP_DIR/$app/data/"
     pa_backup "$app"
 }
@@ -502,10 +505,14 @@ raw_backup_spefial() {
 }
 
 raw_restore() {
-    local app user
+    local app apk user
     app="$1"
     test -z "$app" && usage
-    $ADB install "$RAW_BACKUP_DIR/$app/$app.apk" || true
+    apk="$RAW_BACKUP_DIR/$app/$app.apk"
+    if [ -f "$apk" ]
+    then
+        $ADB install "$apk" || true
+    fi
     $ADB shell am force-stop "$app"
     user="$($ADB shell stat -c '%U:%G' "/data/data/$app")"
     rsync_start
