@@ -61,6 +61,7 @@ rb  | raw_backup <app>             | backup app by raw files
 rba | raw_backup_all               | backup all apps by raw files
 rbs | raw_backup_spefial           | backup spefial files
 rr  | raw_restore <app>            | restore app by raw files
+rrs | raw_restore_spefial          | restore all spefial backups
 rrsa| raw_restore_spefial_accounts | restore accounts
 rrsb| raw_restore_spefial_bluetooth| restore bluetooth settings
 rrsc| raw_restore_spefial_calllog  | restore calllog
@@ -529,6 +530,14 @@ EOF
     then
         $ADB shell restart
     fi
+}
+
+raw_restore_spefial() {
+    raw_restore_spefial_bluetooth
+    raw_restore_spefial_calllog
+    raw_restore_spefial_sms
+    raw_restore_spefial_wifi
+    raw_restore_spefial_accounts
 }
 
 raw_restore_spefial_bluetooth() {
