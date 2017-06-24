@@ -62,6 +62,7 @@ rb  | raw_backup <app>             | backup app by raw files
 rba | raw_backup_all               | backup all apps by raw files
 rbs | raw_backup_spefial           | backup spefial files
 rr  | raw_restore <app>            | restore app by raw files
+rra | raw_restore_all <file>       | restore all app listed in file
 rrs | raw_restore_spefial          | restore all spefial backups
 rrsa| raw_restore_spefial_accounts | restore accounts
 rrsb| raw_restore_spefial_bluetooth| restore bluetooth settings
@@ -520,6 +521,16 @@ raw_restore() {
     RSYNC_PASSWORD="$RSYNC_PASSWORD" rsync -a --chown="$user" --exclude="/cache/" --exclude="/code_cache/" --exclude="/lib" "$RAW_BACKUP_DIR/$app/data/" "${RSYNC_BASE_PATH}/data/data/$app/"
     $ASN restorecon -R "/data/data/$app"
     pa_restore "$app"
+}
+
+raw_restore_all() {
+    local file app
+    file="$1"
+    while read -r app
+    do
+        raw_restore "$app"
+    done <"$file"
+    raw_restore_spefial
 }
 
 raw_restore_spefial() {
