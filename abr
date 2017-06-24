@@ -522,6 +522,19 @@ raw_restore() {
     pa_restore "$app"
 }
 
+raw_restore_spefial() {
+    raw_restore_spefial_bluetooth
+    raw_restore_spefial_calllog
+    raw_restore_spefial_sms
+    raw_restore_spefial_wifi
+
+    captive_portal
+    disabled_app_restore
+    doze_whitelist_restore
+
+    raw_restore_spefial_accounts
+}
+
 raw_restore_spefial_accounts() {
     local restart account_app type origin_uid app uid
     restart=''
@@ -544,19 +557,6 @@ EOF
     then
         $ASN restart
     fi
-}
-
-raw_restore_spefial() {
-    raw_restore_spefial_bluetooth
-    raw_restore_spefial_calllog
-    raw_restore_spefial_sms
-    raw_restore_spefial_wifi
-
-    captive_portal
-    disabled_app_restore
-    doze_whitelist_restore
-
-    raw_restore_spefial_accounts
 }
 
 raw_restore_spefial_bluetooth() {
