@@ -636,7 +636,7 @@ rsync_start() {
     adb_root
     if ! adb shell test -e /mnt/secure/rsyncd.pid
     then
-        $ADB shell 'cat >/mnt/secure/rsyncd.conf' <<EOF
+        $ASN "echo '
 address = 127.0.0.1
 gid = root
 pid file = /mnt/secure/rsyncd.pid
@@ -648,11 +648,9 @@ use chroot = false
   hosts allow = 127.0.0.1
   path = /data
   secrets file = /mnt/secure/rsyncd.secrets
-EOF
+' >/mnt/secure/rsyncd.conf"
         password="$(LC_ALL=C tr -dc '[:graph:]' < /dev/urandom | head -c 16)"
-        $ADB shell 'cat >/mnt/secure/rsyncd.secrets' <<EOF
-backup:${password}
-EOF
+        $ASN "echo backup:${password} >/mnt/secure/rsyncd.secrets"
         $ASN chmod 600 /mnt/secure/rsyncd.conf /mnt/secure/rsyncd.secrets
         $ASN -t -t rsync --daemon --no-detach --config=/mnt/secure/rsyncd.conf &
         disown
