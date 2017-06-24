@@ -304,13 +304,13 @@ captive_portal() {
 
 cat_file() {
     local file
-    file="$1"
-    if [ ! -f "$file" ]
-    then
-        echoerr "file not exists."
-        return
-    fi
-    cat "$file"
+    for file in "$@"
+    do
+        if [ -f "$file" ]
+        then
+            cat "$file"
+        fi
+    done
 }
 
 csv_get() {
