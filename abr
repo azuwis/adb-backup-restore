@@ -555,13 +555,14 @@ raw_restore_spefial_accounts() {
     while IFS='|' read -r type origin_uid
     do
         app="$(csv_get "$account_app" "$type")"
-        uid="$($ASN stat -c %u "/data/data/$app" 2>/dev/null || true)"
-        if [ -n "$uid" ] && [ "$uid" != "$origin_uid" ]
+        if [ -n "$app" ]
         then
-            restart=1
-            $ADB shell sqlite3 /data/system_de/0/accounts_de.db <<EOF
-update meta set value="$uid" where key="$type";
-EOF
+            uid="$($ASN stat -c %u "/data/data/$app" 2>/dev/null)"
+            if [ -n "$uid" ] && [ "$uid" != "$origin_uid" ]
+            then
+                restart=1
+                $ASN "sqlite3 /data/system_de/0/accounts_de.db 'update meta set value=\"$uid\" where key=\"$type\"'"
+            fi
         fi
     done < <($ASN 'sqlite3 /data/system_de/0/accounts_de.db "select * from meta"')
     if [ -n "$restart" ]
