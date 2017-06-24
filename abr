@@ -455,18 +455,12 @@ permission_backup_all() {
 }
 
 permission_restore() {
-    local app permission_file perm mode
+    local app perm mode
     app="$1"
     test -z "$app" && usage
-    for permission_file in "$RAW_BACKUP_DIR/$app/permission" "$RAW_BACKUP_DIR/$app/permission.revoke"
+    cat_file "$RAW_BACKUP_DIR/$app/permission" "$RAW_BACKUP_DIR/$app/permission.revoke" | while read -r perm mode
     do
-        if [ -e "$permission_file" ]
-        then
-            while read -r perm mode
-            do
-                $ASN pm "$mode" "$app" "$perm"
-            done < "$permission_file"
-        fi
+        $ASN pm "$mode" "$app" "$perm"
     done
 }
 
