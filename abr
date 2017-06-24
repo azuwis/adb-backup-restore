@@ -498,6 +498,7 @@ raw_backup_spefial() {
     app_uid_backup
     disabled_app_backup
     doze_whitelist_backup
+    settings_backup
 }
 
 raw_restore() {
