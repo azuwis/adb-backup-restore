@@ -325,7 +325,7 @@ appops_backup_all() {
 appops_restore() {
     app="$1"
     test -z "$app" && usage
-    cat_file "$RAW_BACKUP_DIR/$app/appops" | while read -r op mode
+    changed_backup "$RAW_BACKUP_DIR/$app/appops" "$app" | while read -r op mode
     do
         $ASN cmd appops set "$app" "$op" "$mode"
     done
@@ -355,7 +355,7 @@ cat_file() {
     local file
     for file in "$@"
     do
-        if [ -f "$file" ]
+        if [ -e "$file" ]
         then
             cat "$file"
         fi
@@ -398,7 +398,7 @@ disabled_app_backup() {
 }
 
 disabled_app_restore() {
-    cat_file "$SPEFIAL_BACKUP_DIR/disabled_app" | while read -r app
+    changed_backup "$SPEFIAL_BACKUP_DIR/disabled_app" | while read -r app
     do
         $ASN pm disable "$app"
     done
@@ -413,7 +413,7 @@ doze_whitelist_backup() {
 }
 
 doze_whitelist_restore() {
-    cat_file "$SPEFIAL_BACKUP_DIR/doze_whitelist" | while read -r app
+    changed_backup "$SPEFIAL_BACKUP_DIR/doze_whitelist" | while read -r app
     do
         $ASN dumpsys deviceidle whitelist "+${app}"
     done
@@ -520,7 +520,7 @@ permission_restore() {
     local app perm mode
     app="$1"
     test -z "$app" && usage
-    cat_file "$RAW_BACKUP_DIR/$app/permission" "$RAW_BACKUP_DIR/$app/permission.revoke" | while read -r perm mode
+    changed_backup <(cat_file "$RAW_BACKUP_DIR/$app/permission" "$RAW_BACKUP_DIR/$app/permission.revoke" | sort | uniq) "$app" | while read -r perm mode
     do
         $ASN pm "$mode" "$app" "$perm"
     done
