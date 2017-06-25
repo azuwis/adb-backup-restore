@@ -610,14 +610,16 @@ raw_restore_all() {
 }
 
 raw_restore_spefial() {
+    adblock_enable
+    captive_portal
+    disabled_app_restore
+    doze_whitelist_restore
+    settings_restore
+
     raw_restore_spefial_bluetooth
     raw_restore_spefial_calllog
     raw_restore_spefial_sms
     raw_restore_spefial_wifi
-
-    captive_portal
-    disabled_app_restore
-    doze_whitelist_restore
 
     raw_restore_spefial_accounts
 }
