@@ -362,6 +362,19 @@ cat_file() {
     done
 }
 
+changed_backup() {
+    local file
+    file="$1"
+    shift
+    caller="${FUNCNAME[1]}"
+    func=${caller%_restore}
+    if [ "$caller" = "$func" ]
+    then
+        return
+    fi
+    cat_file "$file" | grep -vFxf <("$func" "$@")
+}
+
 csv_get() {
     local csv key k v
     csv="$1"
