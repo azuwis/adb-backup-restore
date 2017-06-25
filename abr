@@ -363,7 +363,7 @@ cat_file() {
 }
 
 changed_backup() {
-    local file
+    local file caller func
     file="$1"
     shift
     caller="${FUNCNAME[1]}"
