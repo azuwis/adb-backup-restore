@@ -73,6 +73,7 @@ rrsw| raw_restore_spefial_wifi     | restore wifi settings
 rss | rsync_start                  | start rsync
 rsst| rsync_stop                   | stop rsync
 sb  | settings_backup              | backup settings
+sr  | settings_restore             | restore settings
 EOF
     exit 1
 }
@@ -768,6 +769,14 @@ settings_global_backup() {
     general_backup "$SPEFIAL_BACKUP_DIR/settings_global"
 }
 
+settings_global_restore() {
+    local key value
+    changed_backup "$SPEFIAL_BACKUP_DIR/settings_global" | while IFS='=' read -r key value
+    do
+        $ASN settings put global "$key" "$value"
+    done
+}
+
 settings_secure() {
     local pattern='
 display_density_forced
@@ -780,6 +789,14 @@ sysui_qs_tiles
 
 settings_secure_backup() {
     general_backup "$SPEFIAL_BACKUP_DIR/settings_secure"
+}
+
+settings_secure_restore() {
+    local key value
+    changed_backup "$SPEFIAL_BACKUP_DIR/settings_secure" | while IFS='=' read -r key value
+    do
+        $ASN settings put secure "$key" "$value"
+    done
 }
 
 settings_system() {
@@ -795,6 +812,20 @@ vibrate_when_ringing
 
 settings_system_backup() {
     general_backup "$SPEFIAL_BACKUP_DIR/settings_system"
+}
+
+settings_system_restore() {
+    local key value
+    changed_backup "$SPEFIAL_BACKUP_DIR/settings_system" | while IFS='=' read -r key value
+    do
+        $ASN settings put system "$key" "$value"
+    done
+}
+
+settings_restore() {
+    settings_global_restore
+    settings_secure_restore
+    settings_system_restore
 }
 
 if type "$action" 2>/dev/null | grep -qF "function"
