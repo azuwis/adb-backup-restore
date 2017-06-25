@@ -123,6 +123,7 @@ $(adblock_host_default)
 $(adblock_host_block)
 EOF
     $ASN mount -o remount,ro /system
+    adblock_flush_dns
 }
 
 adblock_disable() {
@@ -131,6 +132,15 @@ adblock_disable() {
 $(adblock_host_default)
 EOF
     $ASN mount -o remount,ro /system
+    adblock_flush_dns
+}
+
+adblock_flush_dns() {
+    local i
+    for i in 1 2
+    do
+        $ASN setprop "net.dns$i" "$($ASN getprop "net.dns$i")"
+    done
 }
 
 adblock_host_block() {
