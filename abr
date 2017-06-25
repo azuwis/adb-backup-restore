@@ -24,6 +24,8 @@ OPTIONS:
 SUBCOMMANDS:
 aa  | account_app                  | list app for account auth type
 aab | account_app_backup           | backup app for account auth type
+ade | adblock_enable               | enable adblock
+add | adblock_disable              | disable adblock
 ab  | adb_backup [<app...>]        | create adb backup
 alb | adb_list_backup <backup>     | list apps in adb backup
 ali | adb_list_installed [-3] [-f] | list installed apps
@@ -111,6 +113,39 @@ account_app() {
 
 account_app_backup() {
     general_backup "$SPEFIAL_BACKUP_DIR/account_app"
+}
+
+adblock_enable() {
+    $ASN mount -o remount,rw /system
+    $ADB shell 'cat >/system/etc/hosts' <<EOF
+$(adblock_host_default)
+
+$(adblock_host_block)
+EOF
+    $ASN mount -o remount,ro /system
+}
+
+adblock_disable() {
+    $ASN mount -o remount,rw /system
+    $ADB shell 'cat >/system/etc/hosts' <<EOF
+$(adblock_host_default)
+EOF
+    $ASN mount -o remount,ro /system
+}
+
+adblock_host_block() {
+    (
+    curl -fsSL 'https://adaway.org/hosts.txt' | awk '/^127\.0\.0\.1[ \t]+[A-Za-z0-9_-.]+\.[A-Za-z]+$/ {print "127.0.0.1",tolower($2)}'
+    curl -fsSL 'https://s3.amazonaws.com/lists.disconnect.me/simple_malvertising.txt' | awk '/^[A-Za-z0-9_-.]+\.[A-Za-z]+$/ {print "127.0.0.1",tolower($1)}'
+    curl -fsSL 'https://pgl.yoyo.org/adservers/serverlist.php?hostformat=nohtml&showintro=0&mimetype=plaintext' | awk '/^[A-Za-z0-9_-.]+\.[A-Za-z]+$/ {print "127.0.0.1",tolower($1)}'
+    ) | sort | uniq
+}
+
+adblock_host_default() {
+    cat <<EOF
+127.0.0.1       localhost
+::1             ip6-localhost
+EOF
 }
 
 adb_backup() {
