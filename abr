@@ -203,7 +203,6 @@ adb_root() {
     then
         return
     fi
-    ADB_ROOT_FLAG=1
     $ADB wait-for-device
     if [ "$($ASN whoami)" != 'root' ]
     then
@@ -220,6 +219,7 @@ adb_root() {
             fi
         fi
     fi
+    ADB_ROOT_FLAG=1
 }
 
 adb_unpack() {
@@ -238,13 +238,18 @@ adb_unroot() {
     $ADB wait-for-device
     if [ "$($ASN whoami)" = 'root' ]
     then
-        if [ "$($ASN getprop ro.adb.secure)" = 0 ]
-        then
-            $ADB unroot
-        else
-            $ASN 'su -c "stop adbd && setprop service.adb.root 0 && start adbd"'
-        fi
+        $ADB unroot
         $ADB wait-for-device
+        if [ "$($ASN whoami)" = 'root' ]
+        then
+            $ASN 'su -c "stop adbd && setprop service.adb.root 0 && start adbd"'
+            $ADB wait-for-device
+            if [ "$($ASN whoami)" = 'root' ]
+            then
+                echoerr 'can not drop root access.'
+                exit 1
+            fi
+        fi
     fi
     ADB_ROOT_FLAG=''
 }
