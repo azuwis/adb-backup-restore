@@ -667,7 +667,9 @@ use chroot = false
   secrets file = /mnt/secure/rsyncd.secrets
 ' >/mnt/secure/rsyncd.conf"
         password="$(LC_ALL=C tr -dc '[:graph:]' < /dev/urandom | head -c 16)"
-        $ASN "echo backup:${password} >/mnt/secure/rsyncd.secrets"
+        $ADB shell 'cat >/mnt/secure/rsyncd.secrets' <<EOF
+backup:${password}
+EOF
         $ASN chmod 600 /mnt/secure/rsyncd.conf /mnt/secure/rsyncd.secrets
         $ASN -t -t rsync --daemon --no-detach --config=/mnt/secure/rsyncd.conf &
         disown
