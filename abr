@@ -832,6 +832,7 @@ settings_secure() {
     local pattern='
 display_density_forced
 double_tap_to_wake
+icon_blacklist
 lock_to_app_exit_locked
 sysui_qs_tiles
 '
