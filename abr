@@ -102,6 +102,7 @@ action="$(subcommand "$action")"
 account_app() {
     local app_uid type uid app
     app_uid="$(app_uid)"
+    adb_root
     $ASN 'sqlite3 /data/system_de/0/accounts_de.db "select * from meta"' | while IFS='|' read -r type uid
     do
         app="$(csv_get "$app_uid" "$uid")"
@@ -117,6 +118,7 @@ account_app_backup() {
 }
 
 adblock_enable() {
+    adb_root
     $ASN mount -o remount,rw /system
     $ADB shell 'cat >/system/etc/hosts' <<EOF
 $(adblock_host_default)
@@ -128,6 +130,7 @@ EOF
 }
 
 adblock_disable() {
+    adb_root
     $ASN mount -o remount,rw /system
     $ADB shell 'cat >/system/etc/hosts' <<EOF
 $(adblock_host_default)
@@ -181,6 +184,7 @@ adb_killall() {
     local process
     process="$1"
     test -z "$process" && usage
+    adb_root
     $ASN killall "$process" || true
 }
 
@@ -301,6 +305,7 @@ adb_unroot() {
 }
 
 app_uid() {
+    adb_root
     $ASN ls -ln /data/data | awk '{print $3,$8}' | sort -n
 }
 
@@ -691,6 +696,7 @@ raw_restore_spefial_wifi() {
     file="$SPEFIAL_BACKUP_DIR/data/misc/wifi/wpa_supplicant.conf"
     if [ -f "$file" ]
     then
+        adb_root
         settings="$(adb shell cat /data/misc/wifi/wpa_supplicant.conf | awk '/^network={/ {flag=1} {if(!flag) print}')"
         networks="$(awk '/^network={/ {flag=1} flag' "$file")"
         $ADB shell 'cat >/data/misc/wifi/wpa_supplicant.conf' <<EOF
@@ -705,6 +711,7 @@ EOF
 rsync_password() {
     if [ -z "$RSYNC_PASSWORD" ]
     then
+        adb_root
         RSYNC_PASSWORD="$($ASN cat /mnt/secure/rsyncd.secrets)"
         RSYNC_PASSWORD="${RSYNC_PASSWORD#*:}"
     fi
