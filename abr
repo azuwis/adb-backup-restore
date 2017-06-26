@@ -877,6 +877,7 @@ if type "$action" 2>/dev/null | grep -qF "function"
 then
     shift
     $action "$@"
+    >&2 echo
     echoerr "done"
 else
     usage
