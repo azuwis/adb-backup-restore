@@ -459,6 +459,7 @@ general_backup() {
     output="$("$func" "$@")"
     if [ -n "$output" ]
     then
+        echoerr "$file"
         mkdir -p "$(dirname "$file")"
         echo "$output" >"$file"
     fi
@@ -518,9 +519,11 @@ permission_backup() {
             revoke="$(grep -vFxf <(echo "$permission") "$permission_file" | awk '{if($2=="grant") {print $1, "revoke"}}')"
             if [ -n "$revoke" ]
             then
+                echoerr "${permission_file}.revoke"
                 echo "$revoke"  >> "${permission_file}.revoke"
             fi
         fi
+        echoerr "$permission_file"
         echo "$permission" >"$permission_file"
     fi
 }
@@ -554,8 +557,10 @@ raw_backup() {
     rsync_start
     if [ "${apk:0:6}" == '/data/' ]
     then
+        echoerr "$RAW_BACKUP_DIR/$app/$app.apk"
         RSYNC_PASSWORD="$RSYNC_PASSWORD" rsync "${RSYNC_BASE_PATH}${apk}" "$RAW_BACKUP_DIR/$app/$app.apk"
     fi
+    echoerr "$RAW_BACKUP_DIR/$app/data/"
     RSYNC_PASSWORD="$RSYNC_PASSWORD" rsync -a --exclude="/cache/" --exclude="/code_cache/" --exclude="/lib" "${RSYNC_BASE_PATH}/data/data/$app/" "$RAW_BACKUP_DIR/$app/data/"
     pa_backup "$app"
 }
@@ -568,7 +573,8 @@ raw_backup_all() {
 raw_backup_spefial() {
     mkdir -p "$SPEFIAL_BACKUP_DIR/data"
     rsync_start
-    RSYNC_PASSWORD="$RSYNC_PASSWORD" rsync -a --ignore-missing-args --files-from=- "${RSYNC_BASE_PATH}/data/" "$SPEFIAL_BACKUP_DIR/data/" <<EOF
+    echoerr
+    RSYNC_PASSWORD="$RSYNC_PASSWORD" rsync -ai --ignore-missing-args --files-from=- "${RSYNC_BASE_PATH}/data/" "$SPEFIAL_BACKUP_DIR/data/" <<EOF
 /media/0/WhatsApp/Databases/msgstore.db.crypt12
 /misc/bluedroid/bt_config.conf
 /misc/wifi/wpa_supplicant.conf
@@ -848,7 +854,7 @@ if type "$action" 2>/dev/null | grep -qF "function"
 then
     shift
     $action "$@"
-    echoerr "done."
+    echoerr "done"
 else
     usage
 fi
