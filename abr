@@ -122,7 +122,7 @@ adblock_enable() {
     host_block="$(adblock_host_block)"
     adb_root
     $ASN mount -o remount,rw /system
-    echoerr "$(wc -l <<<"$host_block") hosts"
+    echoerr "block $(wc -l <<<"$host_block") hosts"
     $ADB shell 'cat >/system/etc/hosts' <<EOF
 $(adblock_host_default)
 
@@ -135,7 +135,7 @@ EOF
 adblock_disable() {
     adb_root
     $ASN mount -o remount,rw /system
-    echoerr
+    echoerr 'restore /system/etc/hosts'
     $ADB shell 'cat >/system/etc/hosts' <<EOF
 $(adblock_host_default)
 EOF
@@ -144,6 +144,7 @@ EOF
 }
 
 adblock_flush_dns() {
+    echoerr 'flush dns'
     local i
     for i in 1 2
     do
@@ -440,7 +441,7 @@ echoerr() {
     local caller
     caller="${FUNCNAME[1]}"
     case "$caller" in
-        adb_killall|changed_backup|general_backup|raw_restore_spefial_file)
+        adb_killall|adblock_flush_dns|changed_backup|general_backup|raw_restore_spefial_file)
             caller="${FUNCNAME[2]}"
             ;;
     esac
