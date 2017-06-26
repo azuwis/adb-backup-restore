@@ -118,12 +118,15 @@ account_app_backup() {
 }
 
 adblock_enable() {
+    local host_block
+    host_block="$(adblock_host_block)"
     adb_root
     $ASN mount -o remount,rw /system
+    echoerr "$(wc -l <<<"$host_block") hosts"
     $ADB shell 'cat >/system/etc/hosts' <<EOF
 $(adblock_host_default)
 
-$(adblock_host_block)
+${host_block}
 EOF
     $ASN mount -o remount,ro /system
     adblock_flush_dns
@@ -132,6 +135,7 @@ EOF
 adblock_disable() {
     adb_root
     $ASN mount -o remount,rw /system
+    echoerr
     $ADB shell 'cat >/system/etc/hosts' <<EOF
 $(adblock_host_default)
 EOF
@@ -185,6 +189,7 @@ adb_killall() {
     process="$1"
     test -z "$process" && usage
     adb_root
+    echoerr "killall $process"
     $ASN killall "$process" || true
 }
 
@@ -256,6 +261,7 @@ adb_root() {
     $ADB wait-for-device
     if [ "$($ASN whoami)" != 'root' ]
     then
+        echoerr 'try to get root access'
         $ADB root
         $ADB wait-for-device
         if [ "$($ASN whoami)" != 'root' ]
@@ -288,6 +294,7 @@ adb_unroot() {
     $ADB wait-for-device
     if [ "$($ASN whoami)" = 'root' ]
     then
+        echoerr 'try to drop root access'
         $ADB unroot
         $ADB wait-for-device
         if [ "$($ASN whoami)" = 'root' ]
@@ -352,9 +359,11 @@ appops_set_ignore () {
 }
 
 captive_portal() {
-    $ASN settings put global captive_portal_server google.cn
-    $ASN settings put global captive_portal_http_url http://google.cn/generate_204
-    $ASN settings put global captive_portal_https_url https://google.cn/generate_204
+    local host='google.cn'
+    echoerr "use $host"
+    $ASN settings put global captive_portal_server "$host"
+    $ASN settings put global captive_portal_http_url "http://${host}/generate_204"
+    $ASN settings put global captive_portal_https_url "https://${host}/generate_204"
 }
 
 cat_file() {
@@ -369,7 +378,7 @@ cat_file() {
 }
 
 changed_backup() {
-    local file caller func
+    local file caller func output
     file="$1"
     shift
     caller="${FUNCNAME[1]}"
@@ -378,7 +387,9 @@ changed_backup() {
     then
         return
     fi
-    cat_file "$file" | grep -vFxf <("$func" "$@")
+    output="$(cat_file "$file" | grep -vFxf <("$func" "$@"))"
+    echoerr "${1}\n${output}\n"
+    echo "$output"
 }
 
 csv_get() {
@@ -428,11 +439,12 @@ doze_whitelist_restore() {
 echoerr() {
     local caller
     caller="${FUNCNAME[1]}"
-    if [ "$caller" == 'general_backup' ]
-    then
-        caller="${FUNCNAME[2]}"
-    fi
-    >&2 echo "$caller: $*"
+    case "$caller" in
+        adb_killall|changed_backup|general_backup|raw_restore_spefial_file)
+            caller="${FUNCNAME[2]}"
+            ;;
+    esac
+    >&2 echo -e "$caller: $*"
 }
 
 foreach_3rd_party_app() {
@@ -607,11 +619,13 @@ raw_restore() {
     apk="$RAW_BACKUP_DIR/$app/$app.apk"
     if [ -f "$apk" ]
     then
+        echoerr "apk"
         $ADB install "$apk" || true
     fi
     $ASN am force-stop "$app"
     user="$($ASN stat -c '%U:%G' "/data/data/$app")"
     rsync_start
+    echoerr "$RAW_BACKUP_DIR/$app/data/"
     RSYNC_PASSWORD="$RSYNC_PASSWORD" rsync -a --chown="$user" --exclude="/cache/" --exclude="/code_cache/" --exclude="/lib" "$RAW_BACKUP_DIR/$app/data/" "${RSYNC_BASE_PATH}/data/data/$app/"
     $ASN restorecon -R "/data/data/$app"
     pa_restore "$app"
@@ -657,12 +671,14 @@ raw_restore_spefial_accounts() {
             if [ -n "$uid" ] && [ "$uid" != "$origin_uid" ]
             then
                 restart=1
+                echoerr "$app $type ${origin_uid}->${uid}"
                 $ASN "sqlite3 /data/system_de/0/accounts_de.db 'update meta set value=\"$uid\" where key=\"$type\"'"
             fi
         fi
     done < <($ASN 'sqlite3 /data/system_de/0/accounts_de.db "select * from meta"')
     if [ -n "$restart" ]
     then
+        echoerr 'restart'
         $ASN restart
     fi
 }
@@ -681,10 +697,12 @@ raw_restore_spefial_file() {
     local file user
     file="$1"
     test -z "$file" && usage
+    adb_root
     user="$($ASN stat -c '%U:%G' "$file")"
     if [ -n "$user" ] && [ -f "${SPEFIAL_BACKUP_DIR}${file}" ]
     then
         rsync_start
+        echoerr "$file $user"
         RSYNC_PASSWORD="$RSYNC_PASSWORD" rsync "${SPEFIAL_BACKUP_DIR}${file}" "${RSYNC_BASE_PATH}${file}"
         $ASN chown "$user" "$file"
         $ASN restorecon "$file"
@@ -706,6 +724,7 @@ raw_restore_spefial_wifi() {
         adb_root
         settings="$(adb shell cat /data/misc/wifi/wpa_supplicant.conf | awk '/^network={/ {flag=1} {if(!flag) print}')"
         networks="$(awk '/^network={/ {flag=1} flag' "$file")"
+        echoerr '/data/misc/wifi/wpa_supplicant.conf'
         $ADB shell 'cat >/data/misc/wifi/wpa_supplicant.conf' <<EOF
 ${settings}
 
