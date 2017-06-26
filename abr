@@ -482,7 +482,8 @@ pa_backup() {
 }
 
 pa_backup_all() {
-    foreach_3rd_party_app pa_backup
+    permission_backup_all
+    appops_backup_all
 }
 
 pa_restore() {
