@@ -421,7 +421,13 @@ doze_whitelist_restore() {
 }
 
 echoerr() {
-    >&2 echo "$@"
+    local caller
+    caller="${FUNCNAME[1]}"
+    if [ "$caller" == 'general_backup' ]
+    then
+        caller="${FUNCNAME[2]}"
+    fi
+    >&2 echo "$caller: $*"
 }
 
 foreach_3rd_party_app() {
