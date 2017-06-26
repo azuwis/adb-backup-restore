@@ -50,6 +50,9 @@ dwr | doze_whitelist_restore       | restore apps whitelisted in doze
 da  | disabled_app                 | list disabled apps
 dab | disabled_app_backup          | backup list of disabled apps
 dar | disabled_app_restore         | backup list of disabled apps
+nr  | netpolicy_restrict           | list netpolicy restrict background
+nrb | netpolicy_restrict_backup    | backup netpolicy restrict background
+nrr | netpolicy_restrict_restore   | restore netpolicy restrict background
 pab | pa_backup <app>              | backup permission and appops
 paba| pa_backup_all                | backup permission and appops of all apps
 par | pa_restore <app>             | restore permission and appops
@@ -478,6 +481,37 @@ general_backup() {
     fi
 }
 
+netpolicy_restrict() {
+    local app_uid list uid app
+    app_uid="$(app_uid)"
+    list="$($ASN cmd netpolicy list restrict-background-blacklist)"
+    list="${list#*:}"
+    for uid in $list
+    do
+        app="$(csv_get "$app_uid" "$uid")"
+        if [ -n "$app" ]
+        then
+            echo "$app"
+        fi
+    done
+}
+
+netpolicy_restrict_backup() {
+    general_backup "$SPEFIAL_BACKUP_DIR/netpolicy_restrict"
+}
+
+netpolicy_restrict_restore() {
+    local app
+    changed_backup "$SPEFIAL_BACKUP_DIR/netpolicy_restrict" | while read -r app
+    do
+        uid="$($ASN stat -c %u "/data/data/$app" 2>/dev/null)"
+        if [ -n "$uid" ]
+        then
+            $ASN cmd netpolicy add restrict-background-blacklist "$uid"
+        fi
+    done
+}
+
 pa() {
     local app
     app="$1"
@@ -616,6 +650,7 @@ EOF
     app_uid_backup
     disabled_app_backup
     doze_whitelist_backup
+    netpolicy_restrict_backup
     settings_backup
 }
 
@@ -653,6 +688,7 @@ raw_restore_spefial() {
     captive_portal
     disabled_app_restore
     doze_whitelist_restore
+    netpolicy_restrict_restore
     settings_restore
 
     raw_restore_spefial_bluetooth
