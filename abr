@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# apt-get install adb qpdf rsync
+# apt-get install adb curl qpdf rsync
 
 set -e
 
