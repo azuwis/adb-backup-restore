@@ -261,7 +261,7 @@ adb_root() {
     $ADB wait-for-device
     if [ "$($ASN whoami)" != 'root' ]
     then
-        echoerr 'try to get root access'
+        echoerr 'get root access'
         $ADB root
         $ADB wait-for-device
         if [ "$($ASN whoami)" != 'root' ]
@@ -294,7 +294,7 @@ adb_unroot() {
     $ADB wait-for-device
     if [ "$($ASN whoami)" = 'root' ]
     then
-        echoerr 'try to drop root access'
+        echoerr 'drop root access'
         $ADB unroot
         $ADB wait-for-device
         if [ "$($ASN whoami)" = 'root' ]
@@ -771,6 +771,7 @@ use chroot = false
 backup:${password}
 EOF
         $ASN chmod 600 /mnt/secure/rsyncd.conf /mnt/secure/rsyncd.secrets
+        echoerr 'start rsync'
         $ASN -t -t rsync --daemon --no-detach --config=/mnt/secure/rsyncd.conf &
         disown
         sleep 1
@@ -783,6 +784,7 @@ rsync_stop() {
     if $ASN test -e /mnt/secure/rsyncd.pid
     then
         $ASN 'kill $(cat /mnt/secure/rsyncd.pid)'
+        echoerr 'stop rsync'
     fi
     $ASN rm /mnt/secure/rsyncd.conf /mnt/secure/rsyncd.secrets || true
     $ADB forward --remove "tcp:$RSYNC_LOCAL_PORT" || true
