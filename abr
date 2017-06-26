@@ -773,6 +773,7 @@ EOF
         $ASN chmod 600 /mnt/secure/rsyncd.conf /mnt/secure/rsyncd.secrets
         $ASN -t -t rsync --daemon --no-detach --config=/mnt/secure/rsyncd.conf &
         disown
+        sleep 1
     fi
     rsync_password
     adb forward "tcp:$RSYNC_LOCAL_PORT" tcp:873
