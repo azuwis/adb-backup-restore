@@ -163,10 +163,17 @@ account_restore() {
         if [ -e "$account" ]
         then
             { read -r name; read -r type; } <"$account"
-            awk '/^BEGIN_INIT$/{flag=1;next} /^END_INIT$/{flag=0} flag' "$account" | $ADB shell sqlite3 /data/system_ce/0/accounts_ce.db
             id="$($ASN "sqlite3 /data/system_ce/0/accounts_ce.db 'select _id from accounts where name=\"$name\" and type=\"$type\";'")"
-            awk '/^BEGIN_CE$/{flag=1;next} /^END_CE$/{flag=0} flag' "$account" | sed "s/ACCOUNTS_ID/$id/" | $ADB shell sqlite3 /data/system_ce/0/accounts_ce.db
-            awk '/^BEGIN_DE$/{flag=1;next} /^END_DE$/{flag=0} flag' "$account" | sed "s/ACCOUNTS_ID/$id/" | $ADB shell sqlite3 /data/system_de/0/accounts_de.db
+            if [ -z "$id" ]
+            then
+                echoerr "restore $name/$type"
+                awk '/^BEGIN_INIT$/{flag=1;next} /^END_INIT$/{flag=0} flag' "$account" | $ADB shell sqlite3 /data/system_ce/0/accounts_ce.db
+                id="$($ASN "sqlite3 /data/system_ce/0/accounts_ce.db 'select _id from accounts where name=\"$name\" and type=\"$type\";'")"
+                awk '/^BEGIN_CE$/{flag=1;next} /^END_CE$/{flag=0} flag' "$account" | sed "s/ACCOUNTS_ID/$id/" | $ADB shell sqlite3 /data/system_ce/0/accounts_ce.db
+                awk '/^BEGIN_DE$/{flag=1;next} /^END_DE$/{flag=0} flag' "$account" | sed "s/ACCOUNTS_ID/$id/" | $ADB shell sqlite3 /data/system_de/0/accounts_de.db
+            else
+                echoerr "skip $name/$type, already exist"
+            fi
         fi
     done
 }
