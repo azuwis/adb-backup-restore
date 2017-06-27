@@ -661,7 +661,7 @@ raw_restore() {
     apk="$RAW_BACKUP_DIR/$app/$app.apk"
     if [ -f "$apk" ]
     then
-        echoerr "apk"
+        echoerr "$apk"
         $ADB install "$apk" || true
     fi
     $ASN am force-stop "$app"
