@@ -109,6 +109,7 @@ account() {
     local name type id
     name="$1"
     type="$2"
+    adb_root
     id="$($ASN "sqlite3 /data/system_ce/0/accounts_ce.db 'select _id from accounts where name=\"$name\" and type=\"$type\";'")"
     echo "$name"
     echo "$type"
@@ -163,6 +164,7 @@ account_restore() {
         if [ -e "$account" ]
         then
             { read -r name; read -r type; } <"$account"
+            adb_root
             id="$($ASN "sqlite3 /data/system_ce/0/accounts_ce.db 'select _id from accounts where name=\"$name\" and type=\"$type\";'")"
             if [ -z "$id" ]
             then
