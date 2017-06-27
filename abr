@@ -35,8 +35,8 @@ ar  | adb_restore <backup> <app>   | restore app in adb backup
 aro | adb_root                     | adb root
 au  | adb_unpack <backup> <app>    | unpack app in adb backup
 aur | adb_unroot                   | adb unroot
-apu | app_uid                      | list app uid
-apub| app_uid_backup               | backup app uid
+aua | app_uid_all                  | list all app uid
+auab| app_uid_all_backup           | backup all app uid
 ao  | appops <app>                 | list appops
 aob | appops_backup <app>          | backup appops
 aoba| appops_backup_all            | backup appops of all apps
@@ -103,12 +103,12 @@ fi
 action="$(subcommand "$action")"
 
 account_app() {
-    local app_uid type uid app
-    app_uid="$(app_uid)"
+    local app_uid_all type uid app
+    app_uid_all="$(app_uid_all)"
     adb_root
     $ASN 'sqlite3 /data/system_de/0/accounts_de.db "select * from meta"' | while IFS='|' read -r type uid
     do
-        app="$(csv_get "$app_uid" "$uid")"
+        app="$(csv_get "$app_uid_all" "$uid")"
         if [ -n "$app" ]
         then
             echo "$type $app"
@@ -315,13 +315,13 @@ adb_unroot() {
     ADB_ROOT_FLAG=''
 }
 
-app_uid() {
+app_uid_all() {
     adb_root
     $ASN ls -ln /data/data | awk '{print $3,$8}' | sort -n
 }
 
-app_uid_backup() {
-    general_backup "$SPEFIAL_BACKUP_DIR/app_uid"
+app_uid_all_backup() {
+    general_backup "$SPEFIAL_BACKUP_DIR/app_uid_all"
 }
 
 appops() {
@@ -482,13 +482,13 @@ general_backup() {
 }
 
 netpolicy_restrict() {
-    local app_uid list uid app
-    app_uid="$(app_uid)"
+    local app_uid_all list uid app
+    app_uid_all="$(app_uid_all)"
     list="$($ASN cmd netpolicy list restrict-background-blacklist)"
     list="${list#*:}"
     for uid in $list
     do
-        app="$(csv_get "$app_uid" "$uid")"
+        app="$(csv_get "$app_uid_all" "$uid")"
         if [ -n "$app" ]
         then
             echo "$app"
@@ -647,7 +647,7 @@ raw_backup_spefial() {
 EOF
     >&2 echo
     account_app_backup
-    app_uid_backup
+    app_uid_all_backup
     disabled_app_backup
     doze_whitelist_backup
     netpolicy_restrict_backup
