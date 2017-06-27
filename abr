@@ -22,6 +22,9 @@ OPTIONS:
   -h                               | help
   -x                               | debug
 SUBCOMMANDS:
+ac  | account <name> <type>        | list account type name and type
+acb | account_backup <app>         | backup account of app
+acr | account_restore <app>        | restore account of app
 aa  | account_app                  | list app for account auth type
 aab | account_app_backup           | backup app for account auth type
 ade | adblock_enable               | enable adblock
@@ -101,6 +104,72 @@ then
     action="$1"
 fi
 action="$(subcommand "$action")"
+
+account() {
+    local name type id
+    name="$1"
+    type="$2"
+    id="$($ASN "sqlite3 /data/system_ce/0/accounts_ce.db 'select _id from accounts where name=\"$name\" and type=\"$type\";'")"
+    echo "$name"
+    echo "$type"
+    echo 'BEGIN_INIT'
+    $ADB shell sqlite3 /data/system_ce/0/accounts_ce.db <<EOF
+.mode insert accounts
+select NULL,name,type,password from accounts where _id='$id';
+EOF
+    echo 'END_INIT'
+    echo 'BEGIN_CE'
+    $ADB shell sqlite3 /data/system_ce/0/accounts_ce.db <<EOF
+.mode insert authtokens
+select NULL,'ACCOUNTS_ID',type,authtoken from authtokens where accounts_id='$id';
+.mode insert extras
+select NULL,'ACCOUNTS_ID',key,value from extras where accounts_id='$id';
+EOF
+    echo 'END_CE'
+    echo 'BEGIN_DE'
+    $ADB shell sqlite3 /data/system_de/0/accounts_de.db <<EOF
+.mode insert accounts
+select 'ACCOUNTS_ID',name,type,previous_name,last_password_entry_time_millis_epoch from accounts where _id='$id';
+.mode insert grants
+select 'ACCOUNTS_ID',auth_token_type,uid from grants where accounts_id='$id';
+EOF
+    echo 'END_DE'
+}
+
+account_backup() {
+    local app uid name type
+    app="$1"
+    test -z "$app" && usage
+    uid="$(app_uid "$app")"
+    if [ -n "$uid" ]
+    then
+        $ASN "sqlite3 /data/system_de/0/accounts_de.db 'select key from meta where value=\"$uid\";'" | while read -r type
+        do
+            type="${type#*:}"
+            $ASN "sqlite3 /data/system_ce/0/accounts_ce.db 'select name from accounts where type=\"$type\";'" | while read -r name
+            do
+                general_backup "$RAW_BACKUP_DIR/$app/account/${name}_${type}" "$name" "$type"
+            done
+        done
+    fi
+}
+
+account_restore() {
+    local app account id name type
+    app="$1"
+    test -z "$app" && usage
+    for account in "$RAW_BACKUP_DIR/$app/account/"*
+    do
+        if [ -e "$account" ]
+        then
+            { read -r name; read -r type; } <"$account"
+            awk '/^BEGIN_INIT$/{flag=1;next} /^END_INIT$/{flag=0} flag' "$account" | $ADB shell sqlite3 /data/system_ce/0/accounts_ce.db
+            id="$($ASN "sqlite3 /data/system_ce/0/accounts_ce.db 'select _id from accounts where name=\"$name\" and type=\"$type\";'")"
+            awk '/^BEGIN_CE$/{flag=1;next} /^END_CE$/{flag=0} flag' "$account" | sed "s/ACCOUNTS_ID/$id/" | $ADB shell sqlite3 /data/system_ce/0/accounts_ce.db
+            awk '/^BEGIN_DE$/{flag=1;next} /^END_DE$/{flag=0} flag' "$account" | sed "s/ACCOUNTS_ID/$id/" | $ADB shell sqlite3 /data/system_de/0/accounts_de.db
+        fi
+    done
+}
 
 account_app() {
     local app_uid_all type uid app
@@ -313,6 +382,13 @@ adb_unroot() {
         fi
     fi
     ADB_ROOT_FLAG=''
+}
+
+app_uid() {
+    local app
+    app="$1"
+    test -z "$app" && usage
+    $ASN stat -c %u "/data/data/$app" 2>/dev/null
 }
 
 app_uid_all() {
