@@ -580,7 +580,7 @@ netpolicy_restrict_restore() {
     local app
     changed_backup "$SPEFIAL_BACKUP_DIR/netpolicy_restrict" | while read -r app
     do
-        uid="$($ASN stat -c %u "/data/data/$app" 2>/dev/null)"
+        uid="$(app_uid "$app")"
         if [ -n "$uid" ]
         then
             $ASN cmd netpolicy add restrict-background-blacklist "$uid"
@@ -786,7 +786,7 @@ raw_restore_spefial_accounts() {
         app="$(csv_get "$account_app" "$type")"
         if [ -n "$app" ]
         then
-            uid="$($ASN stat -c %u "/data/data/$app" 2>/dev/null)"
+            uid="$(app_uid "$app")"
             if [ -n "$uid" ] && [ "$uid" != "$origin_uid" ]
             then
                 restart=1
