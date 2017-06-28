@@ -107,11 +107,12 @@ fi
 action="$(subcommand "$action")"
 
 account() {
-    local name type id
+    local name type id token_type uid app
     name="$1"
     type="$2"
     adb_root
     id="$($ASN "sqlite3 /data/system_ce/0/accounts_ce.db 'select _id from accounts where name=\"$name\" and type=\"$type\";'")"
+    app_uid_all_global
     echo "$name"
     echo "$type"
     echo 'BEGIN_INIT'
@@ -132,10 +133,21 @@ EOF
     $ADB shell sqlite3 /data/system_de/0/accounts_de.db <<EOF
 .mode insert accounts
 select 'ACCOUNTS_ID',name,type,previous_name,last_password_entry_time_millis_epoch from accounts where _id='$id';
-.mode insert grants
-select 'ACCOUNTS_ID',auth_token_type,uid from grants where accounts_id='$id';
 EOF
     echo 'END_DE'
+    echo 'BEGIN_GRANTS'
+    {
+        $ADB shell sqlite3 /data/system_de/0/accounts_de.db <<EOF
+.mode csv
+select auth_token_type,uid from grants where accounts_id='$id';
+EOF
+    } | while IFS=, read -r token_type uid
+do
+    uid="${uid%$'\r'}"
+    app="$(csv_get "$APP_UID_ALL" "$uid")"
+    echo "${token_type},${app}"
+done
+    echo 'END_GRANTS'
 }
 
 account_backup() {
