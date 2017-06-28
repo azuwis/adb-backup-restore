@@ -14,6 +14,7 @@ RSYNC_BASE_PATH="rsync://backup@127.0.0.1:${RSYNC_LOCAL_PORT}"
 RSYNC_PASSWORD=''
 ADB_ROOT_FLAG=''
 RSYNC_START_FLAG=''
+APP_UID_ALL=''
 
 usage() {
     cat <<EOF >&2
@@ -181,12 +182,12 @@ account_restore() {
 }
 
 account_app() {
-    local app_uid_all type uid app
-    app_uid_all="$(app_uid_all)"
+    local type uid app
     adb_root
     $ASN 'sqlite3 /data/system_de/0/accounts_de.db "select * from meta"' | while IFS='|' read -r type uid
     do
-        app="$(csv_get "$app_uid_all" "$uid")"
+        app_uid_all_global
+        app="$(csv_get "$APP_UID_ALL" "$uid")"
         if [ -n "$app" ]
         then
             echo "$type $app"
@@ -410,6 +411,13 @@ app_uid_all_backup() {
     general_backup "$SPEFIAL_BACKUP_DIR/app_uid_all"
 }
 
+app_uid_all_global() {
+    if [ -z "$APP_UID_ALL" ]
+    then
+        APP_UID_ALL="$(app_uid_all)"
+    fi
+}
+
 appops() {
     local app
     app="$1"
@@ -568,13 +576,13 @@ general_backup() {
 }
 
 netpolicy_restrict() {
-    local app_uid_all list uid app
-    app_uid_all="$(app_uid_all)"
+    local list uid app
     list="$($ASN cmd netpolicy list restrict-background-blacklist)"
     list="${list#*:}"
     for uid in $list
     do
-        app="$(csv_get "$app_uid_all" "$uid")"
+        app_uid_all_global
+        app="$(csv_get "$APP_UID_ALL" "$uid")"
         if [ -n "$app" ]
         then
             echo "$app"
