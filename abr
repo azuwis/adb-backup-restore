@@ -397,6 +397,7 @@ app_uid() {
     local app
     app="$1"
     test -z "$app" && usage
+    adb_root
     $ASN stat -c %u "/data/data/$app" 2>/dev/null
 }
 
