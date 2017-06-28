@@ -138,14 +138,12 @@ EOF
     echo 'BEGIN_GRANTS'
     {
         $ADB shell sqlite3 /data/system_de/0/accounts_de.db <<EOF
-.mode csv
 select auth_token_type,uid from grants where accounts_id='$id';
 EOF
-    } | while IFS=, read -r token_type uid
+    } | while IFS='|' read -r token_type uid
 do
-    uid="${uid%$'\r'}"
     app="$(csv_get "$APP_UID_ALL" "$uid")"
-    echo "${token_type},${app}"
+    echo "${token_type}|${app}"
 done
     echo 'END_GRANTS'
 }
@@ -186,7 +184,7 @@ account_restore() {
                 id="$($ASN "sqlite3 /data/system_ce/0/accounts_ce.db 'select _id from accounts where name=\"$name\" and type=\"$type\";'")"
                 awk '/^BEGIN_CE$/{flag=1;next} /^END_CE$/{flag=0} flag' "$account" | sed "s/ACCOUNTS_ID/$id/" | $ADB shell sqlite3 /data/system_ce/0/accounts_ce.db
                 awk '/^BEGIN_DE$/{flag=1;next} /^END_DE$/{flag=0} flag' "$account" | sed "s/ACCOUNTS_ID/$id/" | $ADB shell sqlite3 /data/system_de/0/accounts_de.db
-                awk '/^BEGIN_GRANTS$/{flag=1;next} /^END_GRANTS$/{flag=0} flag' "$account" | while IFS=, read -r grant_type grant_app
+                awk '/^BEGIN_GRANTS$/{flag=1;next} /^END_GRANTS$/{flag=0} flag' "$account" | while IFS='|' read -r grant_type grant_app
                 do
                     grant_uid="$(app_uid "$grant_app")"
                     if [ -n "$grant_uid" ]
