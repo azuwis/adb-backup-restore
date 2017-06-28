@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# apt-get install adb curl qpdf rsync
+# apt-get install adb curl qpdf rsync sqlite3
 
 set -e
 
@@ -831,30 +831,10 @@ raw_restore_spefial() {
 }
 
 raw_restore_spefial_accounts() {
-    local restart account_app type origin_uid app uid
-    restart=''
-    raw_restore_spefial_file /data/system_ce/0/accounts_ce.db
-    raw_restore_spefial_file /data/system_de/0/accounts_de.db
-    account_app="$(cat "$SPEFIAL_BACKUP_DIR/account_app")"
-    while IFS='|' read -r type origin_uid
-    do
-        app="$(csv_get "$account_app" "$type")"
-        if [ -n "$app" ]
-        then
-            uid="$(app_uid "$app")"
-            if [ -n "$uid" ] && [ "$uid" != "$origin_uid" ]
-            then
-                restart=1
-                echoerr "$app $type ${origin_uid}->${uid}"
-                $ASN "sqlite3 /data/system_de/0/accounts_de.db 'update meta set value=\"$uid\" where key=\"$type\"'"
-            fi
-        fi
-    done < <($ASN 'sqlite3 /data/system_de/0/accounts_de.db "select * from meta"')
-    if [ -n "$restart" ]
-    then
-        echoerr 'restart'
-        $ASN restart
-    fi
+    adb_root
+    raw_restore_spefial_database /data/system_ce/0/accounts_ce.db accounts authtokens extras
+    raw_restore_spefial_database /data/system_de/0/accounts_de.db accounts
+    $ASN restart
 }
 
 raw_restore_spefial_bluetooth() {
@@ -865,6 +845,20 @@ raw_restore_spefial_bluetooth() {
 raw_restore_spefial_calllog() {
     raw_restore_spefial_file /data/user/0/com.android.providers.contacts/databases/calllog.db
     adb_killall android.process.acore
+}
+
+raw_restore_spefial_database() {
+    local file table
+    file="$1"
+    shift
+    if [ -e "${SPEFIAL_BACKUP_DIR}${file}" ] && $ASN test -e "$file"
+    then
+        for table in "$@"
+        do
+            $ASN "sqlite3 '$file' 'delete from $table;'"
+            sqlite3 "${SPEFIAL_BACKUP_DIR}${file}" ".dump '$table'" | grep '^INSERT ' | $ADB shell sqlite3 "$file"
+        done
+    fi
 }
 
 raw_restore_spefial_file() {
