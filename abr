@@ -169,7 +169,7 @@ account_backup() {
 }
 
 account_restore() {
-    local app account id name type
+    local app account id name type grant_type grant_app grant_uid
     app="$1"
     test -z "$app" && usage
     for account in "$RAW_BACKUP_DIR/$app/account/"*
@@ -186,6 +186,14 @@ account_restore() {
                 id="$($ASN "sqlite3 /data/system_ce/0/accounts_ce.db 'select _id from accounts where name=\"$name\" and type=\"$type\";'")"
                 awk '/^BEGIN_CE$/{flag=1;next} /^END_CE$/{flag=0} flag' "$account" | sed "s/ACCOUNTS_ID/$id/" | $ADB shell sqlite3 /data/system_ce/0/accounts_ce.db
                 awk '/^BEGIN_DE$/{flag=1;next} /^END_DE$/{flag=0} flag' "$account" | sed "s/ACCOUNTS_ID/$id/" | $ADB shell sqlite3 /data/system_de/0/accounts_de.db
+                awk '/^BEGIN_GRANTS$/{flag=1;next} /^END_GRANTS$/{flag=0} flag' "$account" | while IFS=, read -r grant_type grant_app
+                do
+                    grant_uid="$(app_uid "$grant_app")"
+                    if [ -n "$grant_uid" ]
+                    then
+                        echo "INSERT INTO grants VALUES('$id', '$grant_type', '$grant_uid');"
+                    fi
+                done  | $ADB shell sqlite3 /data/system_de/0/accounts_de.db
             else
                 echoerr "skip $name/$type, already exist"
             fi
