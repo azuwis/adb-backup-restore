@@ -742,6 +742,7 @@ raw_backup() {
     echoerr "$RAW_BACKUP_DIR/$app/data/"
     RSYNC_PASSWORD="$RSYNC_PASSWORD" rsync -a --exclude="/cache/" --exclude="/code_cache/" --exclude="/lib" "${RSYNC_BASE_PATH}/data/data/$app/" "$RAW_BACKUP_DIR/$app/data/"
     pa_backup "$app"
+    account_backup "$app"
 }
 
 raw_backup_all() {
