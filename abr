@@ -196,6 +196,7 @@ account_grants() {
 account_grants_restore() {
     local id grant_type grant_app grant_uid
     adb_root
+    $ASN "sqlite3 /data/system_de/0/accounts_de.db 'delete from grants;'"
     cat_file "$SPEFIAL_BACKUP_DIR/account_grants" | while IFS='|' read -r id grant_type grant_app
     do
         grant_uid="$(app_uid "$grant_app")"
