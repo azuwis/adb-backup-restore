@@ -181,6 +181,35 @@ account_backup_all() {
     done
 }
 
+account_grants() {
+    local id token_type uid app
+    app_uid_all_global
+    {
+        $ASN "sqlite3 /data/system_de/0/accounts_de.db 'select accounts_id,auth_token_type,uid from grants;'"
+    } | while IFS='|' read -r id token_type uid
+    do
+        app="$(csv_get "$APP_UID_ALL" "$uid")"
+        echo "${id}|${token_type}|${app}"
+    done
+}
+
+account_grants_restore() {
+    local id grant_type grant_app grant_uid
+    adb_root
+    cat_file "$SPEFIAL_BACKUP_DIR/account_grants" | while IFS='|' read -r id grant_type grant_app
+    do
+        grant_uid="$(app_uid "$grant_app")"
+        if [ -n "$grant_uid" ]
+        then
+            echo "INSERT INTO grants VALUES('$id', '$grant_type', '$grant_uid');"
+        fi
+    done  | $ADB shell sqlite3 /data/system_de/0/accounts_de.db
+}
+
+account_grants_backup() {
+    general_backup "$SPEFIAL_BACKUP_DIR/account_grants"
+}
+
 account_restore() {
     local app account id name type grant_type grant_app grant_uid
     app="$1"
@@ -776,12 +805,13 @@ raw_backup_spefial() {
 EOF
     >&2 echo
     account_app_backup
+    account_backup com.google.android.backuptransport
+    account_grants_backup
     app_uid_all_backup
     disabled_app_backup
     doze_whitelist_backup
     netpolicy_restrict_backup
     settings_backup
-    account_backup com.google.android.backuptransport
     >&2 echo
 }
 
@@ -835,6 +865,7 @@ raw_restore_spefial_accounts() {
     echoerr 'restore all accounts'
     raw_restore_spefial_database /data/system_ce/0/accounts_ce.db accounts authtokens extras
     raw_restore_spefial_database /data/system_de/0/accounts_de.db accounts
+    account_grants_restore
     echoerr 'restart'
     $ASN restart
 }
