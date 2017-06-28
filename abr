@@ -832,8 +832,10 @@ raw_restore_spefial() {
 
 raw_restore_spefial_accounts() {
     adb_root
+    echoerr 'restore all accounts'
     raw_restore_spefial_database /data/system_ce/0/accounts_ce.db accounts authtokens extras
     raw_restore_spefial_database /data/system_de/0/accounts_de.db accounts
+    echoerr 'restart'
     $ASN restart
 }
 
