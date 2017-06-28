@@ -152,6 +152,7 @@ account_backup() {
     local app uid name type
     app="$1"
     test -z "$app" && usage
+    adb_root
     uid="$(app_uid "$app")"
     if [ -n "$uid" ]
     then
