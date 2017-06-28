@@ -25,6 +25,7 @@ OPTIONS:
 SUBCOMMANDS:
 ac  | account <name> <type>        | list account type name and type
 acb | account_backup <app>         | backup account of app
+acba| account_backup_all           | backup all accounts
 acr | account_restore <app>        | restore account of app
 aa  | account_app                  | list app for account auth type
 aab | account_app_backup           | backup app for account auth type
@@ -165,6 +166,19 @@ account_backup() {
             done
         done
     fi
+}
+
+account_backup_all() {
+    local uid app
+    app_uid_all_global
+    $ASN "sqlite3 /data/system_de/0/accounts_de.db 'select distinct value from meta;'" | while read -r uid
+    do
+        app="$(csv_get "$APP_UID_ALL" "$uid")"
+        if [ -n "$app" ]
+        then
+            account_backup "$app"
+        fi
+    done
 }
 
 account_restore() {
