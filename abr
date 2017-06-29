@@ -853,12 +853,15 @@ raw_restore_spefial() {
     netpolicy_restrict_restore
     settings_restore
 
+    raw_restore_spefial_accounts
     raw_restore_spefial_bluetooth
     raw_restore_spefial_calllog
     raw_restore_spefial_sms
+    raw_restore_spefial_wallpaper
     raw_restore_spefial_wifi
 
-    raw_restore_spefial_accounts
+    echoerr 'restart'
+    $ASN restart
 }
 
 raw_restore_spefial_accounts() {
@@ -867,8 +870,6 @@ raw_restore_spefial_accounts() {
     raw_restore_spefial_database /data/system_ce/0/accounts_ce.db accounts authtokens extras
     raw_restore_spefial_database /data/system_de/0/accounts_de.db accounts
     account_grants_restore
-    echoerr 'restart'
-    $ASN restart
 }
 
 raw_restore_spefial_bluetooth() {
