@@ -1025,6 +1025,7 @@ settings_global_restore() {
 
 settings_secure() {
     local pattern='
+android_id
 display_density_forced
 double_tap_to_wake
 icon_blacklist
