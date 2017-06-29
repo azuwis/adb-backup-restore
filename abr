@@ -918,6 +918,11 @@ raw_restore_spefial_sms() {
     adb_killall com.android.messaging
 }
 
+raw_restore_spefial_wallpaper() {
+    raw_restore_spefial_file /data/system/users/0/wallpaper
+    raw_restore_spefial_file /data/system/users/0/wallpaper_info.xml
+}
+
 raw_restore_spefial_wifi() {
     local file settings networks
     file="$SPEFIAL_BACKUP_DIR/data/misc/wifi/wpa_supplicant.conf"
