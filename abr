@@ -365,9 +365,9 @@ adb_list_backup() {
 
 adb_list_installed() {
     if $ASN which cmd >/dev/null; then
-        $ASN cmd package list packages "$@" | sed 's/^package://'
+        $ASN cmd package list packages "$@" | sed 's/^package://' | sort
     else
-        $ASN pm list packages "$@" | sed 's/^package://'
+        $ASN pm list packages "$@" | sed 's/^package://' | sort
     fi
 }
 
@@ -375,7 +375,7 @@ adb_list_nobackup() {
     local backup
     backup="$1"
     test -z "$backup" && usage
-    adb_list_installed -3 | grep -vFxf <(adb_list_backup "$backup") | sort
+    adb_list_installed -3 | grep -vFxf <(adb_list_backup "$backup")
 }
 
 adb_pack() {
