@@ -850,15 +850,15 @@ raw_restore_spefial() {
     captive_portal
     disabled_app_restore
     doze_whitelist_restore
-    netpolicy_restrict_restore
     settings_restore
 
     raw_restore_spefial_accounts
+    raw_restore_spefial_appwidgets
     raw_restore_spefial_bluetooth
     raw_restore_spefial_calllog
+    raw_restore_spefial_netpolicy
     raw_restore_spefial_sms
     raw_restore_spefial_wallpaper
-    raw_restore_spefial_appwidgets
     raw_restore_spefial_wifi
 
     echoerr 'restart'
@@ -916,6 +916,30 @@ raw_restore_spefial_file() {
         $ASN chown "$user" "$file"
         $ASN restorecon "$file"
     fi
+}
+
+raw_restore_spefial_netpolicy() {
+    local line prefix origin_uid suffix app uid
+    app_uid_all_global
+    adb_root
+    echoerr 'restore netpolicy, need restart'
+    cat_file "$SPEFIAL_BACKUP_DIR/data/system/netpolicy.xml" | while read -r line
+    do
+        if [[ "$line" =~ (^.+uid=\")([0-9]+)(\".+$) ]]
+        then
+            prefix="${BASH_REMATCH[1]}"
+            origin_uid="${BASH_REMATCH[2]}"
+            suffix="${BASH_REMATCH[3]}"
+            app="$(csv_get "$APP_UID_ALL" "$origin_uid")"
+            uid="$(app_uid "$app")"
+            if [ -n "$uid" ]
+            then
+                echo "${prefix}${uid}${suffix}"
+            fi
+        else
+            echo "$line"
+        fi
+    done | $ADB shell 'cat >/data/system/netpolicy.xml'
 }
 
 raw_restore_spefial_sms() {
