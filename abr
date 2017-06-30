@@ -371,6 +371,10 @@ adb_list_installed() {
     fi
 }
 
+adb_list_installed_backup() {
+    general_backup thirdparty -3
+}
+
 adb_list_nobackup() {
     local backup
     backup="$1"
@@ -811,6 +815,7 @@ EOF
     account_app_backup
     account_backup com.google.android.backuptransport
     account_grants_backup
+    adb_list_installed_backup
     app_uid_all_backup
     disabled_app_backup
     doze_whitelist_backup
