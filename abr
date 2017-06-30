@@ -76,7 +76,10 @@ rrs | raw_restore_spefial          | restore all spefial backups
 rrsa| raw_restore_spefial_accounts | restore accounts
 rrsb| raw_restore_spefial_bluetooth| restore bluetooth settings
 rrsc| raw_restore_spefial_calllog  | restore calllog
+rrsn| raw_restore_spefial_netpolicy| restore netpolicy
 rrss| raw_restore_spefial_sms      | restore sms
+    | raw_restore_spefial_wallpaper| restore wallpaper
+    | raw_restore_spefial_widgets  | restore app widgets
 rrsw| raw_restore_spefial_wifi     | restore wifi settings
 rss | rsync_start                  | start rsync
 rsst| rsync_stop                   | stop rsync
@@ -853,12 +856,12 @@ raw_restore_spefial() {
     settings_restore
 
     raw_restore_spefial_accounts
-    raw_restore_spefial_appwidgets
     raw_restore_spefial_bluetooth
     raw_restore_spefial_calllog
     raw_restore_spefial_netpolicy
     raw_restore_spefial_sms
     raw_restore_spefial_wallpaper
+    raw_restore_spefial_widgets
     raw_restore_spefial_wifi
 
     echoerr 'restart'
@@ -873,7 +876,7 @@ raw_restore_spefial_accounts() {
     account_grants_restore
 }
 
-raw_restore_spefial_appwidgets() {
+raw_restore_spefial_widgets() {
     echoerr 'restore app widgets, need restart'
     raw_restore_spefial_file /data/system/users/0/appwidgets.xml
 }
