@@ -792,8 +792,9 @@ raw_backup_spefial() {
     mkdir -p "$SPEFIAL_BACKUP_DIR/data"
     rsync_start
     echoerr
-    RSYNC_PASSWORD="$RSYNC_PASSWORD" rsync -ai --ignore-missing-args --files-from=- "${RSYNC_BASE_PATH}/data/" "$SPEFIAL_BACKUP_DIR/data/" <<EOF
-/media/0/WhatsApp/Databases/msgstore.db.crypt12
+    RSYNC_PASSWORD="$RSYNC_PASSWORD" rsync -ami --include-from=- "${RSYNC_BASE_PATH}/data/" "$SPEFIAL_BACKUP_DIR/data/" <<EOF
+/media/0/WhatsApp/***
+/media/0/tencent/MicroMsg/***
 /misc/bluedroid/bt_config.conf
 /misc/wifi/wpa_supplicant.conf
 /system/appops.xml
@@ -810,6 +811,8 @@ raw_backup_spefial() {
 /user/0/com.android.providers.contacts/databases/contacts2.db
 /user_de/0/com.android.providers.telephony/databases/mmssms.db
 /user_de/0/com.android.providers.telephony/databases/telephony.db
+*/
+- *
 EOF
     >&2 echo
     account_app_backup
