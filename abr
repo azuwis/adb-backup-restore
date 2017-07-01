@@ -372,7 +372,7 @@ adb_list_installed() {
 }
 
 adb_list_installed_backup() {
-    general_backup thirdparty -3
+    general_backup "$SPEFIAL_BACKUP_DIR/thirdparty_app" -3
 }
 
 adb_list_nobackup() {
