@@ -807,8 +807,8 @@ raw_backup_spefial() {
 /system/users/0/wallpaper_info.xml
 /system_ce/0/accounts_ce.db
 /system_de/0/accounts_de.db
-/user/0/com.android.providers.contacts/databases/calllog.db
-/user/0/com.android.providers.contacts/databases/contacts2.db
+/data/com.android.providers.contacts/databases/calllog.db
+/data/com.android.providers.contacts/databases/contacts2.db
 /user_de/0/com.android.providers.telephony/databases/mmssms.db
 /user_de/0/com.android.providers.telephony/databases/telephony.db
 */
@@ -895,7 +895,7 @@ raw_restore_spefial_bluetooth() {
 }
 
 raw_restore_spefial_calllog() {
-    raw_restore_spefial_file /data/user/0/com.android.providers.contacts/databases/calllog.db
+    raw_restore_spefial_file /data/data/com.android.providers.contacts/databases/calllog.db
     adb_killall android.process.acore
 }
 
