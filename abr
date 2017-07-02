@@ -777,7 +777,7 @@ raw_backup() {
         RSYNC_PASSWORD="$RSYNC_PASSWORD" rsync "${RSYNC_BASE_PATH}${apk}" "$RAW_BACKUP_DIR/$app/$app.apk"
     fi
     echoerr "$RAW_BACKUP_DIR/$app/data/"
-    RSYNC_PASSWORD="$RSYNC_PASSWORD" rsync -a --exclude="/cache/" --exclude="/code_cache/" --exclude="/lib" "${RSYNC_BASE_PATH}/data/data/$app/" "$RAW_BACKUP_DIR/$app/data/"
+    RSYNC_PASSWORD="$RSYNC_PASSWORD" rsync -a --delete --exclude="/cache/" --exclude="/code_cache/" --exclude="/lib" "${RSYNC_BASE_PATH}/data/data/$app/" "$RAW_BACKUP_DIR/$app/data/"
     pa_backup "$app"
     account_backup "$app"
     >&2 echo
@@ -792,7 +792,7 @@ raw_backup_spefial() {
     mkdir -p "$SPEFIAL_BACKUP_DIR/data"
     rsync_start
     echoerr
-    RSYNC_PASSWORD="$RSYNC_PASSWORD" rsync -ami --include-from=- "${RSYNC_BASE_PATH}/data/" "$SPEFIAL_BACKUP_DIR/data/" <<EOF
+    RSYNC_PASSWORD="$RSYNC_PASSWORD" rsync -ami --delete --include-from=- "${RSYNC_BASE_PATH}/data/" "$SPEFIAL_BACKUP_DIR/data/" <<EOF
 /media/0/WhatsApp/***
 /media/0/tencent/MicroMsg/***
 /misc/bluedroid/bt_config.conf
@@ -841,7 +841,7 @@ raw_restore() {
     user="$($ASN stat -c '%U:%G' "/data/data/$app")"
     rsync_start
     echoerr "$RAW_BACKUP_DIR/$app/data/"
-    RSYNC_PASSWORD="$RSYNC_PASSWORD" rsync -a --chown="$user" --exclude="/cache/" --exclude="/code_cache/" --exclude="/lib" "$RAW_BACKUP_DIR/$app/data/" "${RSYNC_BASE_PATH}/data/data/$app/"
+    RSYNC_PASSWORD="$RSYNC_PASSWORD" rsync -a --delete --chown="$user" --exclude="/cache/" --exclude="/code_cache/" --exclude="/lib" "$RAW_BACKUP_DIR/$app/data/" "${RSYNC_BASE_PATH}/data/data/$app/"
     $ASN restorecon -R "/data/data/$app"
     pa_restore "$app"
 }
