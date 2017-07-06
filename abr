@@ -1068,7 +1068,7 @@ settings_global_restore() {
     local key value
     changed_backup "$SPEFIAL_BACKUP_DIR/settings_global" | while IFS='=' read -r key value
     do
-        $ASN settings put global "$key" "$value"
+        $ASN "settings put global '$key' '$value'"
     done
 }
 
@@ -1092,7 +1092,7 @@ settings_secure_restore() {
     local key value
     changed_backup "$SPEFIAL_BACKUP_DIR/settings_secure" | while IFS='=' read -r key value
     do
-        $ASN settings put secure "$key" "$value"
+        $ASN "settings put secure '$key' '$value'"
     done
 }
 
@@ -1115,7 +1115,7 @@ settings_system_restore() {
     local key value
     changed_backup "$SPEFIAL_BACKUP_DIR/settings_system" | while IFS='=' read -r key value
     do
-        $ASN settings put system "$key" "$value"
+        $ASN "settings put system '$key' '$value'"
     done
 }
 
