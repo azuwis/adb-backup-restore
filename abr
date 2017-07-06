@@ -608,7 +608,7 @@ echoerr() {
     local caller
     caller="${FUNCNAME[1]}"
     case "$caller" in
-        adb_killall|adblock_flush_dns|changed_backup|general_backup|raw_restore_spefial_file)
+        adb_killall|adblock_flush_dns|changed_backup|general_backup|raw_restore_spefial_dir|raw_restore_spefial_file)
             caller="${FUNCNAME[2]}"
             ;;
     esac
@@ -872,6 +872,8 @@ raw_restore_spefial() {
     raw_restore_spefial_netpolicy
     raw_restore_spefial_sms
     raw_restore_spefial_wallpaper
+    raw_restore_spefial_wechat
+    raw_restore_spefial_whatsapp
     raw_restore_spefial_widgets
     raw_restore_spefial_wifi
 
@@ -918,6 +920,19 @@ raw_restore_spefial_database() {
             $ASN "sqlite3 '$file' 'delete from $table;'"
             sqlite3 "${SPEFIAL_BACKUP_DIR}${file}" ".dump '$table'" | grep '^INSERT ' | $ADB shell sqlite3 "$file"
         done
+    fi
+}
+
+raw_restore_spefial_dir() {
+    local dir user
+    dir="$1"
+    user="$2"
+    test -z "$dir" || test -z "$user" && usage
+    if [ -e "${SPEFIAL_BACKUP_DIR}${dir}" ]
+    then
+        echoerr "$dir"
+        rsync_start
+        RSYNC_PASSWORD="$RSYNC_PASSWORD" rsync -a --chown="$user" "${SPEFIAL_BACKUP_DIR}${dir}/" "${RSYNC_BASE_PATH}${dir}/"
     fi
 }
 
@@ -981,6 +996,14 @@ raw_restore_spefial_wallpaper() {
     echoerr 'restore wallpaper, need restart'
     raw_restore_spefial_file /data/system/users/0/wallpaper system:system 0600
     raw_restore_spefial_file /data/system/users/0/wallpaper_info.xml
+}
+
+raw_restore_spefial_wechat() {
+    raw_restore_spefial_dir '/data/media/0/tencent/MicroMsg' media_rw:media_rw
+}
+
+raw_restore_spefial_whatsapp() {
+    raw_restore_spefial_dir '/data/media/0/WhatsApp' media_rw:media_rw
 }
 
 raw_restore_spefial_wifi() {
