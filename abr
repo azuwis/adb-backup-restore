@@ -833,7 +833,7 @@ raw_restore() {
     app="$1"
     test -z "$app" && usage
     apk="$RAW_BACKUP_DIR/$app/$app.apk"
-    if [ -f "$apk" ]
+    if [ -f "$apk" ] && ! $ASN test -e "/data/data/$app"
     then
         echoerr "$apk"
         $ADB install "$apk" || true
