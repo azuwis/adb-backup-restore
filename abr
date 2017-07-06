@@ -915,17 +915,26 @@ raw_restore_spefial_database() {
 }
 
 raw_restore_spefial_file() {
-    local file user
+    local file user mode
     file="$1"
     test -z "$file" && usage
     adb_root
-    user="$($ASN stat -c '%U:%G' "$file")"
+    user="$2"
+    mode="$3"
+    if [ -z "$user" ]
+    then
+        user="$($ASN stat -c '%U:%G' "$file")"
+    fi
     if [ -n "$user" ] && [ -f "${SPEFIAL_BACKUP_DIR}${file}" ]
     then
         rsync_start
         echoerr "$file $user"
         RSYNC_PASSWORD="$RSYNC_PASSWORD" rsync "${SPEFIAL_BACKUP_DIR}${file}" "${RSYNC_BASE_PATH}${file}"
         $ASN chown "$user" "$file"
+        if [ -n "$mode" ]
+        then
+            $ASN chmod "$mode" "$file"
+        fi
         $ASN restorecon "$file"
     fi
 }
@@ -963,7 +972,7 @@ raw_restore_spefial_sms() {
 
 raw_restore_spefial_wallpaper() {
     echoerr 'restore wallpaper, need restart'
-    raw_restore_spefial_file /data/system/users/0/wallpaper
+    raw_restore_spefial_file /data/system/users/0/wallpaper system:system 0600
     raw_restore_spefial_file /data/system/users/0/wallpaper_info.xml
 }
 
