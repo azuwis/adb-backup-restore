@@ -850,10 +850,10 @@ raw_restore() {
 raw_restore_all() {
     local file app
     file="$1"
-    while read -r app
+    for app in $(cat "$file")
     do
         raw_restore "$app"
-    done <"$file"
+    done
     raw_restore_spefial
 }
 
