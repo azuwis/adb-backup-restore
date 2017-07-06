@@ -940,8 +940,8 @@ raw_restore_spefial_file() {
 }
 
 raw_restore_spefial_netpolicy() {
-    local line prefix origin_uid suffix app uid
-    app_uid_all_global
+    local origin_app_uid_all line prefix origin_uid suffix app uid
+    origin_app_uid_all="$(cat "$SPEFIAL_BACKUP_DIR/app_uid_all")"
     adb_root
     echoerr 'restore netpolicy, need restart'
     cat_file "$SPEFIAL_BACKUP_DIR/data/system/netpolicy.xml" | while read -r line
@@ -951,7 +951,7 @@ raw_restore_spefial_netpolicy() {
             prefix="${BASH_REMATCH[1]}"
             origin_uid="${BASH_REMATCH[2]}"
             suffix="${BASH_REMATCH[3]}"
-            app="$(csv_get "$APP_UID_ALL" "$origin_uid")"
+            app="$(csv_get "$origin_app_uid_all" "$origin_uid")"
             uid="$(app_uid "$app")"
             if [ -n "$uid" ]
             then
