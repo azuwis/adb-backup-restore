@@ -867,6 +867,7 @@ raw_restore_spefial() {
     raw_restore_spefial_accounts
     raw_restore_spefial_bluetooth
     raw_restore_spefial_calllog
+    raw_restore_spefial_lineageos
     raw_restore_spefial_netpolicy
     raw_restore_spefial_sms
     raw_restore_spefial_wallpaper
@@ -898,6 +899,11 @@ raw_restore_spefial_bluetooth() {
 raw_restore_spefial_calllog() {
     raw_restore_spefial_file /data/data/com.android.providers.contacts/databases/calllog.db
     adb_killall android.process.acore
+}
+
+raw_restore_spefial_lineageos() {
+    echoerr 'restore lineageos settings, need restart'
+    raw_restore_spefial_file /data/user_de/0/org.cyanogenmod.cmsettings/databases/cmsettings.db
 }
 
 raw_restore_spefial_database() {
