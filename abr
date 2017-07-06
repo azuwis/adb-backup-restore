@@ -811,6 +811,7 @@ raw_backup_spefial() {
 /data/com.android.providers.contacts/databases/contacts2.db
 /user_de/0/com.android.providers.telephony/databases/mmssms.db
 /user_de/0/com.android.providers.telephony/databases/telephony.db
+/user_de/0/org.cyanogenmod.cmsettings/databases/cmsettings.db
 */
 - *
 EOF
