@@ -648,6 +648,20 @@ general_backup() {
     fi
 }
 
+google_now() {
+    local number country
+    adb_root
+    echoerr 'enable google now'
+    number="$($ASN getprop gsm.sim.operator.numeric | sed -E 's/[0-9]+/310030/g')"
+    $ASN setprop gsm.sim.operator.numeric "$number"
+    country="$($ASN getprop gsm.sim.operator.iso-country | sed -E 's/[a-z]+/us/g')"
+    $ASN setprop gsm.sim.operator.iso-country "$country"
+    $ASN pm clear com.google.android.gms || true
+    $ASN pm clear com.google.android.apps.maps || true
+    $ASN am force-stop com.google.android.googlequicksearchbox
+    $ASN am start com.google.android.googlequicksearchbox/com.google.android.apps.gsa.searchnow.SearchNowActivity
+}
+
 netpolicy_restrict() {
     local list uid app
     list="$($ASN cmd netpolicy list restrict-background-blacklist)"
@@ -866,6 +880,7 @@ raw_restore_spefial() {
     captive_portal
     disabled_app_restore
     doze_whitelist_restore
+    google_now
     settings_restore
 
     raw_restore_spefial_accounts
