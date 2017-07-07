@@ -915,11 +915,6 @@ raw_restore_spefial_alarms() {
     raw_restore_spefial_file /data/user_de/0/com.android.deskclock/databases/alarms.db
 }
 
-raw_restore_spefial_widgets() {
-    echoerr 'restore app widgets, need restart'
-    raw_restore_spefial_file /data/system/users/0/appwidgets.xml
-}
-
 raw_restore_spefial_bluetooth() {
     raw_restore_spefial_file /data/misc/bluedroid/bt_config.conf
     adb_killall com.android.bluetooth
@@ -1030,6 +1025,11 @@ raw_restore_spefial_wechat() {
 
 raw_restore_spefial_whatsapp() {
     raw_restore_spefial_dir '/data/media/0/WhatsApp' media_rw:media_rw
+}
+
+raw_restore_spefial_widgets() {
+    echoerr 'restore app widgets, need restart'
+    raw_restore_spefial_file /data/system/users/0/appwidgets.xml
 }
 
 raw_restore_spefial_wifi() {
