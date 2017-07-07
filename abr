@@ -827,6 +827,7 @@ raw_backup_spefial() {
 /system_de/0/accounts_de.db
 /data/com.android.providers.contacts/databases/calllog.db
 /data/com.android.providers.contacts/databases/contacts2.db
+/user_de/0/com.android.deskclock/databases/alarms.db
 /user_de/0/com.android.providers.telephony/databases/mmssms.db
 /user_de/0/com.android.providers.telephony/databases/telephony.db
 /user_de/0/org.cyanogenmod.cmsettings/databases/cmsettings.db
@@ -884,6 +885,7 @@ raw_restore_spefial() {
     settings_restore
 
     raw_restore_spefial_accounts
+    raw_restore_spefial_alarms
     raw_restore_spefial_bluetooth
     raw_restore_spefial_calllog
     raw_restore_spefial_lineageos
@@ -905,6 +907,12 @@ raw_restore_spefial_accounts() {
     raw_restore_spefial_database /data/system_ce/0/accounts_ce.db accounts authtokens extras
     raw_restore_spefial_database /data/system_de/0/accounts_de.db accounts
     account_grants_restore
+}
+
+raw_restore_spefial_alarms() {
+    adb_root
+    echoerr 'restore alarms, need restart'
+    raw_restore_spefial_file /data/user_de/0/com.android.deskclock/databases/alarms.db
 }
 
 raw_restore_spefial_widgets() {
