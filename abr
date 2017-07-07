@@ -911,8 +911,9 @@ raw_restore_spefial_accounts() {
 
 raw_restore_spefial_alarms() {
     adb_root
-    echoerr 'restore alarms, need restart'
+    echoerr 'restore alarms'
     raw_restore_spefial_file /data/user_de/0/com.android.deskclock/databases/alarms.db
+    adb_killall com.android.deskclock
 }
 
 raw_restore_spefial_bluetooth() {
