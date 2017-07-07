@@ -556,8 +556,11 @@ changed_backup() {
         return
     fi
     output="$(cat_file "$file" | grep -vFxf <("$func" "$@") || true)"
-    echoerr "${1}\n${output}\n"
-    echo "$output"
+    if [ -n "$output" ]
+    then
+        echoerr "${1}\n${output}\n"
+        echo "$output"
+    fi
 }
 
 csv_get() {
