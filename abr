@@ -803,6 +803,7 @@ raw_backup() {
 raw_backup_all() {
     raw_backup_spefial
     foreach_3rd_party_app raw_backup
+    adb_unroot
 }
 
 raw_backup_spefial() {
