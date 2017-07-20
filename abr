@@ -1166,7 +1166,9 @@ settings_system() {
     local pattern='
 haptic_feedback_enabled
 lock_to_app_enabled
+lockscreen_sounds_enabled
 screen_brightness_mode
+sound_effects_enabled
 time_12_24
 vibrate_when_ringing
 '
