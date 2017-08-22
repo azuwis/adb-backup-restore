@@ -268,26 +268,24 @@ account_app_backup() {
 adblock_enable() {
     local host_block
     host_block="$(adblock_host_block)"
-    adb_root
-    $ASN mount -o remount,rw /system
+    mount_rw
     echoerr "block $(wc -l <<<"$host_block") hosts"
     $ADB shell 'cat >/system/etc/hosts' <<EOF
 $(adblock_host_default)
 
 ${host_block}
 EOF
-    $ASN mount -o remount,ro /system
+    mount_ro
     adblock_flush_dns
 }
 
 adblock_disable() {
-    adb_root
-    $ASN mount -o remount,rw /system
+    mount_rw
     echoerr 'restore /system/etc/hosts'
     $ADB shell 'cat >/system/etc/hosts' <<EOF
 $(adblock_host_default)
 EOF
-    $ASN mount -o remount,ro /system
+    mount_ro
     adblock_flush_dns
 }
 
@@ -660,6 +658,16 @@ google_now() {
     $ASN pm clear com.google.android.apps.maps || true
     $ASN am force-stop com.google.android.googlequicksearchbox
     $ASN am start com.google.android.googlequicksearchbox/com.google.android.apps.gsa.searchnow.SearchNowActivity
+}
+
+mount_ro() {
+    adb_root
+    $ASN mount -o remount,ro /system
+}
+
+mount_rw() {
+    adb_root
+    $ASN mount -o remount,rw /system
 }
 
 netpolicy_restrict() {
