@@ -83,6 +83,7 @@ rrss| raw_restore_spefial_sms      | restore sms
 rrsw| raw_restore_spefial_wifi     | restore wifi settings
 rss | rsync_start                  | start rsync
 rsst| rsync_stop                   | stop rsync
+scc | swap_capslock_ctrl           | swap capslock and left ctrl key
 sb  | settings_backup              | backup settings
 sr  | settings_restore             | restore settings
 EOF
@@ -1116,6 +1117,12 @@ rsync_stop() {
     $ADB forward --remove "tcp:$RSYNC_LOCAL_PORT" || true
     adb_unroot
     RSYNC_START_FLAG=''
+}
+
+swap_capslock_ctrl() {
+    mount_rw
+    sed -i -e 's/^key 58    CAPS_LOCK$/key 29    CAPS_LOCK/' -e 's/^key 29    CTRL_LEFT$/key 58    CTRL_LEFT/' /system/usr/keylayout/Generic.kl
+    mount_ro
 }
 
 settings_backup() {
