@@ -740,7 +740,30 @@ permission() {
     local app
     app="$1"
     test -z "$app" && usage
-    $ASN dumpsys package "$app" | awk -F' +|:|,' '/runtime permissions:$/{flag=1;next}/(:$|^$)/{flag=0} {if(flag) {if($4=="granted=true") {print $2, "grant"} else if($4=="granted=false") {print $2, "revoke"}}}'
+    $ASN dumpsys package "$app" | awk -F' +|:|,' '
+BEGIN {
+  user=0
+}
+/^ +User / {
+  user=$3
+}
+/runtime permissions:$/ {
+  flag=1
+  next
+}
+/(:$|^$)/ {
+  flag=0
+}
+{
+  if (flag && user==0) {
+    if($4=="granted=true") {
+      print $2, "grant"
+    } else if ($4=="granted=false") {
+      print $2, "revoke"
+    }
+  }
+}
+'
 }
 
 permission_backup() {
