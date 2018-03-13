@@ -507,7 +507,7 @@ appops_restore() {
     test -z "$app" && usage
     changed_backup "$RAW_BACKUP_DIR/$app/appops" "$app" | while read -r op mode
     do
-        $ASN cmd appops set "$app" "$op" "$mode"
+        $ASN cmd appops set "$app" "$op" "$mode" || true
     done
 }
 
