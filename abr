@@ -315,21 +315,42 @@ EOF
 }
 
 adb_backup() {
-    local app backup
+    local app apps backup
     mkdir -p "$ADB_BACKUP_DIR"
     if [ -n "$1" ]
     then
-        app=$*
-        backup="${ADB_BACKUP_DIR}/${app// /_}.ab"
+        app="$1"
+        backup="${ADB_BACKUP_DIR}/$app"
+        if $ASN dumpsys package "$app" | grep -qF ' ALLOW_BACKUP '
+        then
+            echo -n "adb_backup: $app  "
+            adb_backup_confirm &
+            $ADB backup -f "$backup" -apk "$app"
+            pa_backup "$app"
+            echo
+        fi
     else
-        app="-all"
         backup="${ADB_BACKUP_DIR}/$(date +%Y-%m-%d).ab"
+        $ADB backup -f "$backup" -apk -nosystem -all
+        for app in $(adb_list_backup "$backup")
+        do
+            pa_backup "$app"
+        done
     fi
-    $ADB backup -f "$backup" -apk -nosystem $app
-    for app in $(adb_list_backup "$backup")
+}
+
+adb_backup_all() {
+    foreach_3rd_party_app adb_backup
+}
+
+adb_backup_confirm() {
+    local x y
+    sleep 1
+    while ! IFS=',' read -r x y < <($ASN dumpsys activity top | awk -F',|-' '/DecorView@.+\[BackupRestoreConfirmation\]/ {getline; print}' | grep -o '[0-9]\+,[0-9]\+ ')
     do
-        pa_backup "$app"
+        sleep 1
     done
+    $ASN input tap "$((x-20))" "$((y-20))"
 }
 
 adb_killall() {
