@@ -702,6 +702,32 @@ netpolicy_restrict_restore() {
     done
 }
 
+openwrt_base() {
+    local tmp openwrt ipk
+    tmp=/tmp/abr
+    openwrt=/data/local/tmp/openwrt
+    mkdir -p "$tmp/ipk" "$tmp/root"
+    wget -P "$tmp/ipk" -nc \
+         https://downloads.lede-project.org/snapshots/targets/armvirt/64/packages/libc_1.1.19-1_aarch64_generic.ipk \
+         https://downloads.lede-project.org/snapshots/targets/armvirt/64/packages/libgcc_7.3.0-1_aarch64_generic.ipk \
+         https://downloads.lede-project.org/snapshots/packages/aarch64_generic/base/zlib_1.2.11-2_aarch64_generic.ipk \
+         https://downloads.lede-project.org/snapshots/packages/aarch64_generic/base/libopenssl_1.0.2n-1_aarch64_generic.ipk \
+         https://downloads.lede-project.org/snapshots/packages/aarch64_generic/packages/openssh-client_7.6p1-1_aarch64_generic.ipk \
+         https://downloads.lede-project.org/snapshots/packages/aarch64_generic/packages/openssh-client-utils_7.6p1-1_aarch64_generic.ipk
+    for ipk in $tmp/ipk/*.ipk
+    do
+        tar -xOzf "$ipk" ./data.tar.gz | tar -C $tmp/root -xzf -
+    done
+    $ASN mkdir -p "$openwrt"
+    $ASN chmod 700 "$openwrt"
+    tar -C "$tmp" -czf - root | $ADB shell tar -C $openwrt -xzf - || true
+    $ADB shell "cat >$openwrt/ssh" <<EOF
+#!/system/bin/sh
+HOME=$openwrt LD_LIBRARY_PATH=$openwrt/root/lib:$openwrt/root/usr/lib $openwrt/root/lib/libc.so -- $openwrt/root/usr/bin/ssh "\$@"
+EOF
+    $ASN chmod 755 "$openwrt/ssh"
+}
+
 pa() {
     local app
     app="$1"
