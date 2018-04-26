@@ -472,8 +472,21 @@ app_uid() {
 }
 
 app_uid_all() {
-    adb_root
-    $ASN ls -ln /data/data | awk '{print $3,$8}' | sort -n
+    $ASN dumpsys package | awk -F' +|=|\[|\]' '
+BEGIN {
+  flag=0
+}
+/^ +Package \[/ {
+  flag=1
+  package=$4
+}
+/^ +userId=/ {
+  if(flag==1) {
+    flag=0
+    print $3, package
+  }
+}
+' | sort -n
 }
 
 app_uid_all_backup() {
