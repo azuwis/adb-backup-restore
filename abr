@@ -775,6 +775,7 @@ permission_backup() {
     permission_revoke_file="${permission_file}.revoke"
     if [ -n "$permission" ]
     then
+        mkdir -p "$RAW_BACKUP_DIR/$app/"
         if [ -e "$permission_file" ]
         then
             revoke="$(grep -vFxf <(echo "$permission") "$permission_file" | awk '{if($2=="grant") {print $1, "revoke"}}')"
