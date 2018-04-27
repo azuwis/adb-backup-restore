@@ -321,7 +321,16 @@ adb_backup() {
     then
         app="$1"
         backup="${ADB_BACKUP_DIR}/$app"
-        if ! grep -qxF "$app" "${ADB_BACKUP_DIR}/blacklist" && $ASN dumpsys package "$app" | grep -qF ' ALLOW_BACKUP '
+        if ! (grep -qxF "$app" <<EOF
+com.oneplus.filemanager
+com.oneplus.iconpack.circle
+com.oneplus.iconpack.h2default
+com.oneplus.iconpack.h2folio
+com.oneplus.iconpack.h2light
+com.oneplus.iconpack.oneplus
+com.oneplus.iconpack.square
+EOF
+             ) && $ASN dumpsys package "$app" | grep -qF ' ALLOW_BACKUP '
         then
             echo -n "adb_backup: $app  "
             $ASN monkey -p "$app" 1 &>/dev/null || true
@@ -342,11 +351,6 @@ adb_backup() {
 
 adb_backup_all() {
     foreach_3rd_party_app adb_backup
-    adb_backup_blacklist
-}
-
-adb_backup_blacklist() {
-    find "$ADB_BACKUP_DIR" -maxdepth 1 -type f -size -100c -size +1c -printf "%f\n" | sort > "${ADB_BACKUP_DIR}/blacklist"
 }
 
 adb_backup_confirm() {
