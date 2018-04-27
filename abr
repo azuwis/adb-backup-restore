@@ -146,10 +146,10 @@ EOF
 select auth_token_type,uid from grants where accounts_id='$id';
 EOF
     } | while IFS='|' read -r token_type uid
-do
-    app="$(csv_get "$APP_UID_ALL" "$uid")"
-    echo "${token_type}|${app}"
-done
+    do
+        app="$(csv_get "$APP_UID_ALL" "$uid")"
+        echo "${token_type}|${app}"
+    done
     echo 'END_GRANTS'
 }
 
@@ -301,9 +301,9 @@ adblock_flush_dns() {
 
 adblock_host_block() {
     (
-    curl -fsSL 'https://adaway.org/hosts.txt' | awk '/^127\.0\.0\.1[ \t]+[A-Za-z0-9_-.]+\.[A-Za-z]+$/ {print "127.0.0.1",tolower($2)}'
-    curl -fsSL 'https://s3.amazonaws.com/lists.disconnect.me/simple_malvertising.txt' | awk '/^[A-Za-z0-9_-.]+\.[A-Za-z]+$/ {print "127.0.0.1",tolower($1)}'
-    curl -fsSL 'https://pgl.yoyo.org/adservers/serverlist.php?hostformat=nohtml&showintro=0&mimetype=plaintext' | awk '/^[A-Za-z0-9_-.]+\.[A-Za-z]+$/ {print "127.0.0.1",tolower($1)}'
+        curl -fsSL 'https://adaway.org/hosts.txt' | awk '/^127\.0\.0\.1[ \t]+[A-Za-z0-9_-.]+\.[A-Za-z]+$/ {print "127.0.0.1",tolower($2)}'
+        curl -fsSL 'https://s3.amazonaws.com/lists.disconnect.me/simple_malvertising.txt' | awk '/^[A-Za-z0-9_-.]+\.[A-Za-z]+$/ {print "127.0.0.1",tolower($1)}'
+        curl -fsSL 'https://pgl.yoyo.org/adservers/serverlist.php?hostformat=nohtml&showintro=0&mimetype=plaintext' | awk '/^[A-Za-z0-9_-.]+\.[A-Za-z]+$/ {print "127.0.0.1",tolower($1)}'
     ) | sort | uniq
 }
 
