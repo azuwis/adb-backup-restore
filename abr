@@ -345,7 +345,7 @@ adb_backup_all() {
 }
 
 adb_backup_blacklist() {
-    find "$ADB_BACKUP_DIR" -maxdepth 1 -type f -size -100c -printf "%f\n" | sort > "${ADB_BACKUP_DIR}/blacklist"
+    find "$ADB_BACKUP_DIR" -maxdepth 1 -type f -size -100c -size +1c -printf "%f\n" | sort > "${ADB_BACKUP_DIR}/blacklist"
 }
 
 adb_backup_confirm() {
