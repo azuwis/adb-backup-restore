@@ -351,6 +351,7 @@ EOF
 
 adb_backup_all() {
     foreach_3rd_party_app adb_backup
+    adb_backup_shared
 }
 
 adb_backup_confirm() {
