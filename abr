@@ -325,13 +325,13 @@ adb_backup() {
         then
             echo -n "adb_backup: $app  "
             adb_backup_confirm &
-            $ADB backup -f "$backup" -apk "$app"
+            $ADB backup -keyvalue -f "$backup" -apk "$app"
             pa_backup "$app"
             echo
         fi
     else
         backup="${ADB_BACKUP_DIR}/$(date +%Y-%m-%d).ab"
-        $ADB backup -f "$backup" -apk -nosystem -all
+        $ADB backup -keyvalue -f "$backup" -apk -nosystem -all
         for app in $(adb_list_backup "$backup")
         do
             pa_backup "$app"
