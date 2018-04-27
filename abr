@@ -321,7 +321,7 @@ adb_backup() {
     then
         app="$1"
         backup="${ADB_BACKUP_DIR}/$app"
-        if $ASN dumpsys package "$app" | grep -qF ' ALLOW_BACKUP '
+        if ! grep -qxF "$app" "${ADB_BACKUP_DIR}/blacklist" && $ASN dumpsys package "$app" | grep -qF ' ALLOW_BACKUP '
         then
             echo -n "adb_backup: $app  "
             adb_backup_confirm &
@@ -341,6 +341,11 @@ adb_backup() {
 
 adb_backup_all() {
     foreach_3rd_party_app adb_backup
+    adb_backup_blacklist
+}
+
+adb_backup_blacklist() {
+    find "$ADB_BACKUP_DIR" -maxdepth 1 -type f -size -100c -printf "%f\n" | sort > "${ADB_BACKUP_DIR}/blacklist"
 }
 
 adb_backup_confirm() {
