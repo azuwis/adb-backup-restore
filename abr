@@ -353,6 +353,11 @@ adb_backup_confirm() {
     $ASN input tap "$((x-20))" "$((y-20))"
 }
 
+adb_backup_shared() {
+    adb_backup_confirm &
+    $ADB backup -f "${ADB_BACKUP_DIR}/shared.ab" -shared
+}
+
 adb_killall() {
     local process
     process="$1"
