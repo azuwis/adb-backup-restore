@@ -336,6 +336,7 @@ EOF
             $ASN monkey -p "$app" 1 &>/dev/null || true
             adb_backup_confirm &
             $ADB backup -keyvalue -f "$backup" -apk "$app"
+            sleep 1
             pa_backup "$app"
             echo
         fi
