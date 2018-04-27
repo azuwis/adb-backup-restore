@@ -324,6 +324,7 @@ adb_backup() {
         if ! grep -qxF "$app" "${ADB_BACKUP_DIR}/blacklist" && $ASN dumpsys package "$app" | grep -qF ' ALLOW_BACKUP '
         then
             echo -n "adb_backup: $app  "
+            $ASN monkey -p "$app" 1 &>/dev/null || true
             adb_backup_confirm &
             $ADB backup -keyvalue -f "$backup" -apk "$app"
             pa_backup "$app"
