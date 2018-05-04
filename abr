@@ -33,6 +33,7 @@ ade | adblock_enable               | enable adblock
 add | adblock_disable              | disable adblock
 ab  | adb_backup [<app...>]        | create adb backup
 aba | adb_backup_all               | adb backup all apps
+abs | adb_backup_shared            | adb backup shared storage
 alb | adb_list_backup <backup>     | list apps in adb backup
 ali | adb_list_installed [-3] [-f] | list installed apps
 aln | adb_list_nobackup <backup>   | list apps without ALLOW_BACKUP flag
