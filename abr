@@ -376,6 +376,7 @@ adb_backup_confirm() {
 
 adb_backup_shared() {
     adb_backup_confirm &
+    echo -n "adb_backup: shared storage  "
     $ADB backup -f "${ADB_BACKUP_DIR}/shared.ab" -shared
 }
 
