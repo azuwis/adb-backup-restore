@@ -334,9 +334,10 @@ EOF
         then
             echo -n "adb_backup: $app  "
             $ASN monkey -p "$app" 1 &>/dev/null || true
+            sleep 1
+            $ASN input keyevent KEYCODE_HOME
             adb_backup_confirm &
             $ADB backup -keyvalue -f "$backup" -apk "$app"
-            sleep 1
             pa_backup "$app"
             echo
         fi
