@@ -439,6 +439,15 @@ adb_pack() {
 }
 
 adb_restore() {
+    local app
+    app="$1"
+    test -z "$app" && usage
+    adb_backup_confirm &
+    $ADB restore "${ADB_BACKUP_DIR}/${app}"
+    pa_restore "$app"
+}
+
+adb_restore_partial() {
     local backup app tmp_dir
     backup="$1"
     app="$2"
