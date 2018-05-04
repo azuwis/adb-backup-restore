@@ -364,7 +364,7 @@ adb_backup_confirm() {
     do
         sleep 1
     done
-    $ASN input tap "$((x-20))" "$((y-20))"
+    $ASN input tap "$((x-80))" "$((y-80))"
 }
 
 adb_backup_shared() {
