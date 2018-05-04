@@ -353,6 +353,13 @@ EOF
 }
 
 adb_backup_all() {
+    adb_list_installed_backup
+    app_uid_all_backup
+    disabled_app_backup
+    doze_whitelist_backup
+    netpolicy_restrict_backup
+    settings_backup
+
     foreach_3rd_party_app adb_backup
     adb_backup_shared
 }
