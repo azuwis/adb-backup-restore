@@ -741,6 +741,18 @@ mount_rw() {
     $ASN mount -o remount,rw /system
 }
 
+navbar_enable() {
+    mount_rw
+    $ASN 'sed -i "/^qemu\.hw\.mainkeys=1$/d" /system/build.prop'
+    mount_ro
+}
+
+navbar_disable() {
+    mount_rw
+    $ASN 'grep -qFx qemu.hw.mainkeys=1 /system/build.prop || echo qemu.hw.mainkeys=1 >> /system/build.prop'
+    mount_ro
+}
+
 netpolicy_restrict() {
     local list uid app
     list="$($ASN cmd netpolicy list restrict-background-blacklist)"
