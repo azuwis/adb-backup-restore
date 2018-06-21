@@ -784,6 +784,35 @@ netpolicy_restrict_restore() {
     done
 }
 
+nfc_emu() {
+    mount_rw
+    # $ASN chown root:shell /system/vendor/etc/libnfc-nxp.conf
+    # $ASN chmod 664 /system/vendor/etc/libnfc-nxp.conf
+    $ADB shell 'cat >/system/bin/nfc-emu' <<'EOF'
+#!/system/bin/sh
+
+conf_file=/system/vendor/etc/libnfc-nxp.conf
+
+id="${1:-01:02:03:04}"
+
+length="${id//:/}"
+length="${#length}"
+length="$((length/2))"
+length="$(printf "%02x" "$length")"
+replace="${length}, ${id//:/, },"
+
+conf="$(cat "$conf_file")"
+mount -o remount,rw /system
+echo "$conf" | sed "s/^        33, .*$/        33, ${replace}/" > "$conf_file"
+mount -o remount,ro /system
+
+svc nfc disable
+svc nfc enable
+EOF
+    $ASN chmod 755 /system/bin/nfc-emu
+    mount_ro
+}
+
 openwrt_base() {
     local tmp openwrt ipk
     tmp=/tmp/abr
