@@ -1282,7 +1282,7 @@ rsync_stop() {
 
 swap_capslock_ctrl() {
     mount_rw
-    $ASN sed -i -e 's/^key 58    CAPS_LOCK$/key 29    CAPS_LOCK/' -e 's/^key 29    CTRL_LEFT$/key 58    CTRL_LEFT/' /system/usr/keylayout/Generic.kl
+    $ASN "sed -i -e 's/^key 58    CAPS_LOCK$/key 29    CAPS_LOCK/' -e 's/^key 29    CTRL_LEFT$/key 58    CTRL_LEFT/' /system/usr/keylayout/Generic.kl"
     mount_ro
 }
 
