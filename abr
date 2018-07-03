@@ -1478,6 +1478,59 @@ settings_restore() {
     settings_system_restore
 }
 
+op5t_camera() {
+    mount_rw
+    $AS 'cat >/system/addon.d/99-op5t-camera.sh' <<'EOL'
+#!/sbin/sh
+#
+# /system/addon.d/99-op5t-camera.sh
+# Restore Oneplus 5T camera fix
+#
+
+. /tmp/backuptool.functions
+
+list_files() {
+cat <<EOF
+vendor/lib/libchromatix_imx398_3a_4656x2608_30fps_preview.so
+vendor/lib/libchromatix_imx398_cpp_4656x3496_30fps_preview.so
+vendor/lib/libchromatix_imx398_cpp_4656x3496_30fps_snapshot.so
+vendor/lib/libchromatix_imx398_isp_4656x3496_30fps_snapshot.so
+vendor/lib/hw/camera.msm8998.so
+vendor/lib/libmmcamera_imx371.so
+vendor/lib/libmmcamera_imx398.so
+EOF
+}
+
+case "$1" in
+    backup)
+        list_files | while read FILE DUMMY; do
+            backup_file $S/"$FILE"
+        done
+        ;;
+    restore)
+        list_files | while read FILE REPLACEMENT; do
+            R=""
+            [ -n "$REPLACEMENT" ] && R="$S/$REPLACEMENT"
+            [ -f "$C/$S/$FILE" ] && restore_file $S/"$FILE" "$R"
+        done
+        ;;
+    pre-backup)
+        # Stub
+        ;;
+    post-backup)
+        # Stub
+        ;;
+    pre-restore)
+        # Stub
+        ;;
+    post-restore)
+        # Stub
+        ;;
+esac
+EOL
+    mount_ro
+}
+
 if type "$action" 2>/dev/null | grep -qF "function"
 then
     shift
