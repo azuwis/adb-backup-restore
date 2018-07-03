@@ -744,12 +744,41 @@ mount_rw() {
 navbar_enable() {
     mount_rw
     $ASN 'sed -i "/^qemu\.hw\.mainkeys=1$/d" /system/build.prop'
+    $ASN rm /system/addon.d/99-navbar.sh
     mount_ro
 }
 
 navbar_disable() {
     mount_rw
     $ASN 'grep -qFx qemu.hw.mainkeys=1 /system/build.prop || echo qemu.hw.mainkeys=1 >> /system/build.prop'
+    $ADB shell 'cat >/system/addon.d/99-navbar.sh' <<'EOF'
+#!/sbin/sh
+#
+# /system/addon.d/50-navbar.sh
+# Disable navbar
+#
+
+case "$1" in
+    backup)
+        # Stub
+        ;;
+    restore)
+        # Stub
+        ;;
+    pre-backup)
+        # Stub
+        ;;
+    post-backup)
+        # Stub
+        ;;
+    pre-restore)
+        # Stub
+        ;;
+    post-restore)
+        grep -qFx qemu.hw.mainkeys=1 /system/build.prop || echo qemu.hw.mainkeys=1 >> /system/build.prop
+        ;;
+esac
+EOF
     mount_ro
 }
 
