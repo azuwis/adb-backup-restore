@@ -1313,6 +1313,34 @@ rsync_stop() {
 swap_capslock_ctrl() {
     mount_rw
     $ASN "sed -i -e 's/^key 58    CAPS_LOCK$/key 29    CAPS_LOCK/' -e 's/^key 29    CTRL_LEFT$/key 58    CTRL_LEFT/' /system/usr/keylayout/Generic.kl"
+    $AS 'cat >/system/addon.d/50-swap-capslock-ctrl.sh' <<'EOF'
+#!/sbin/sh
+#
+# /system/addon.d/50-swap-capslock-ctrl.sh
+# Swap capslock and ctrl
+#
+
+case "$1" in
+    backup)
+        # Stub
+        ;;
+    restore)
+        # Stub
+        ;;
+    pre-backup)
+        # Stub
+        ;;
+    post-backup)
+        # Stub
+        ;;
+    pre-restore)
+        # Stub
+        ;;
+    post-restore)
+        sed -i -e 's/^key 58    CAPS_LOCK$/key 29    CAPS_LOCK/' -e 's/^key 29    CTRL_LEFT$/key 58    CTRL_LEFT/' /system/usr/keylayout/Generic.kl
+        ;;
+esac
+EOF
     mount_ro
 }
 
