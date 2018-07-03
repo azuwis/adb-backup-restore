@@ -834,12 +834,62 @@ replace="${length}, ${id//:/, },"
 conf="$(cat "$conf_file")"
 mount -o remount,rw /system
 echo "$conf" | sed "s/^        33, .*$/        33, ${replace}/" > "$conf_file"
+if [ -e /system/addon.d/99-nfc-emu.sh ]
+then
+    sed -i "s/^replace=.*$/replace=\"${replace}\"/" /system/addon.d/99-nfc-emu.sh
+fi
 mount -o remount,ro /system
 
 svc nfc disable
 svc nfc enable
 EOF
     $ASN chmod 755 /system/bin/nfc-emu
+    $AS 'cat >/system/addon.d/99-nfc-emu.sh' <<'EOL'
+#!/sbin/sh
+#
+# /system/addon.d/99-nfc-emu.sh
+# Backup nfc-emu script and restore config
+#
+
+replace="04, 01, 02, 03, 04,"
+
+. /tmp/backuptool.functions
+
+list_files() {
+cat <<EOF
+bin/nfc-emu
+EOF
+}
+
+case "$1" in
+    backup)
+        list_files | while read FILE DUMMY; do
+            backup_file $S/"$FILE"
+        done
+        ;;
+    restore)
+        list_files | while read FILE REPLACEMENT; do
+            R=""
+            [ -n "$REPLACEMENT" ] && R="$S/$REPLACEMENT"
+            [ -f "$C/$S/$FILE" ] && restore_file $S/"$FILE" "$R"
+        done
+        ;;
+    pre-backup)
+        # Stub
+        ;;
+    post-backup)
+        # Stub
+        ;;
+    pre-restore)
+        # Stub
+        ;;
+    post-restore)
+        conf_file=/system/vendor/etc/libnfc-nxp.conf
+        conf="$(cat "$conf_file")"
+        echo "$conf" | sed "s/^        33, .*$/        33, ${replace}/" > "$conf_file"
+        ;;
+esac
+EOL
     mount_ro
 }
 
