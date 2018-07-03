@@ -5,7 +5,8 @@
 set -e
 
 ADB='adb -d'
-ASN="$ADB shell -n"
+AS="$ADB shell"
+ASN="$AS -n"
 ADB_BACKUP_DIR='adb_backup'
 RAW_BACKUP_DIR='raw_backup'
 SPEFIAL_BACKUP_DIR="$RAW_BACKUP_DIR/spefial"
@@ -123,13 +124,13 @@ account() {
     echo "$name"
     echo "$type"
     echo 'BEGIN_INIT'
-    $ADB shell sqlite3 /data/system_ce/0/accounts_ce.db <<EOF
+    $AS sqlite3 /data/system_ce/0/accounts_ce.db <<EOF
 .mode insert accounts
 select NULL,name,type,password from accounts where _id='$id';
 EOF
     echo 'END_INIT'
     echo 'BEGIN_CE'
-    $ADB shell sqlite3 /data/system_ce/0/accounts_ce.db <<EOF
+    $AS sqlite3 /data/system_ce/0/accounts_ce.db <<EOF
 .mode insert authtokens
 select NULL,'ACCOUNTS_ID',type,authtoken from authtokens where accounts_id='$id';
 .mode insert extras
@@ -137,14 +138,14 @@ select NULL,'ACCOUNTS_ID',key,value from extras where accounts_id='$id';
 EOF
     echo 'END_CE'
     echo 'BEGIN_DE'
-    $ADB shell sqlite3 /data/system_de/0/accounts_de.db <<EOF
+    $AS sqlite3 /data/system_de/0/accounts_de.db <<EOF
 .mode insert accounts
 select 'ACCOUNTS_ID',name,type,previous_name,last_password_entry_time_millis_epoch from accounts where _id='$id';
 EOF
     echo 'END_DE'
     echo 'BEGIN_GRANTS'
     {
-        $ADB shell sqlite3 /data/system_de/0/accounts_de.db <<EOF
+        $AS sqlite3 /data/system_de/0/accounts_de.db <<EOF
 select auth_token_type,uid from grants where accounts_id='$id';
 EOF
     } | while IFS='|' read -r token_type uid
@@ -210,7 +211,7 @@ account_grants_restore() {
         then
             echo "INSERT INTO grants VALUES('$id', '$grant_type', '$grant_uid');"
         fi
-    done  | $ADB shell sqlite3 /data/system_de/0/accounts_de.db
+    done  | $AS sqlite3 /data/system_de/0/accounts_de.db
 }
 
 account_grants_backup() {
@@ -231,10 +232,10 @@ account_restore() {
             if [ -z "$id" ]
             then
                 echoerr "restore $name/$type"
-                awk '/^BEGIN_INIT$/{flag=1;next} /^END_INIT$/{flag=0} flag' "$account" | $ADB shell sqlite3 /data/system_ce/0/accounts_ce.db
+                awk '/^BEGIN_INIT$/{flag=1;next} /^END_INIT$/{flag=0} flag' "$account" | $AS sqlite3 /data/system_ce/0/accounts_ce.db
                 id="$($ASN "sqlite3 /data/system_ce/0/accounts_ce.db 'select _id from accounts where name=\"$name\" and type=\"$type\";'")"
-                awk '/^BEGIN_CE$/{flag=1;next} /^END_CE$/{flag=0} flag' "$account" | sed "s/ACCOUNTS_ID/$id/" | $ADB shell sqlite3 /data/system_ce/0/accounts_ce.db
-                awk '/^BEGIN_DE$/{flag=1;next} /^END_DE$/{flag=0} flag' "$account" | sed "s/ACCOUNTS_ID/$id/" | $ADB shell sqlite3 /data/system_de/0/accounts_de.db
+                awk '/^BEGIN_CE$/{flag=1;next} /^END_CE$/{flag=0} flag' "$account" | sed "s/ACCOUNTS_ID/$id/" | $AS sqlite3 /data/system_ce/0/accounts_ce.db
+                awk '/^BEGIN_DE$/{flag=1;next} /^END_DE$/{flag=0} flag' "$account" | sed "s/ACCOUNTS_ID/$id/" | $AS sqlite3 /data/system_de/0/accounts_de.db
                 awk '/^BEGIN_GRANTS$/{flag=1;next} /^END_GRANTS$/{flag=0} flag' "$account" | while IFS='|' read -r grant_type grant_app
                 do
                     grant_uid="$(app_uid "$grant_app")"
@@ -242,7 +243,7 @@ account_restore() {
                     then
                         echo "INSERT INTO grants VALUES('$id', '$grant_type', '$grant_uid');"
                     fi
-                done  | $ADB shell sqlite3 /data/system_de/0/accounts_de.db
+                done  | $AS sqlite3 /data/system_de/0/accounts_de.db
             else
                 echoerr "skip $name/$type, already exist"
             fi
@@ -273,7 +274,7 @@ adblock_enable() {
     host_block="$(adblock_host_block)"
     mount_rw
     echoerr "block $(wc -l <<<"$host_block") hosts"
-    $ADB shell 'cat >/system/etc/hosts' <<EOF
+    $AS 'cat >/system/etc/hosts' <<EOF
 $(adblock_host_default)
 
 ${host_block}
@@ -285,7 +286,7 @@ EOF
 adblock_disable() {
     mount_rw
     echoerr 'restore /system/etc/hosts'
-    $ADB shell 'cat >/system/etc/hosts' <<EOF
+    $AS 'cat >/system/etc/hosts' <<EOF
 $(adblock_host_default)
 EOF
     mount_ro
@@ -751,7 +752,7 @@ navbar_enable() {
 navbar_disable() {
     mount_rw
     $ASN 'grep -qFx qemu.hw.mainkeys=1 /system/build.prop || echo qemu.hw.mainkeys=1 >> /system/build.prop'
-    $ADB shell 'cat >/system/addon.d/99-navbar.sh' <<'EOF'
+    $AS 'cat >/system/addon.d/99-navbar.sh' <<'EOF'
 #!/sbin/sh
 #
 # /system/addon.d/50-navbar.sh
@@ -817,7 +818,7 @@ nfc_emu() {
     mount_rw
     # $ASN chown root:shell /system/vendor/etc/libnfc-nxp.conf
     # $ASN chmod 664 /system/vendor/etc/libnfc-nxp.conf
-    $ADB shell 'cat >/system/bin/nfc-emu' <<'EOF'
+    $AS 'cat >/system/bin/nfc-emu' <<'EOF'
 #!/system/bin/sh
 
 conf_file=/system/vendor/etc/libnfc-nxp.conf
@@ -860,8 +861,8 @@ openwrt_base() {
     done
     $ASN mkdir -p "$openwrt"
     $ASN chmod 700 "$openwrt"
-    tar -C "$tmp" -czf - root | $ADB shell tar -C $openwrt -xzf - || true
-    $ADB shell "cat >$openwrt/ssh" <<EOF
+    tar -C "$tmp" -czf - root | $AS tar -C $openwrt -xzf - || true
+    $AS "cat >$openwrt/ssh" <<EOF
 #!/system/bin/sh
 HOME=$openwrt LD_LIBRARY_PATH=$openwrt/root/lib:$openwrt/root/usr/lib $openwrt/root/lib/libc.so -- $openwrt/root/usr/bin/ssh "\$@"
 EOF
@@ -1140,7 +1141,7 @@ raw_restore_spefial_database() {
         for table in "$@"
         do
             $ASN "sqlite3 '$file' 'delete from $table;'"
-            sqlite3 "${SPEFIAL_BACKUP_DIR}${file}" ".dump '$table'" | grep '^INSERT ' | $ADB shell sqlite3 "$file"
+            sqlite3 "${SPEFIAL_BACKUP_DIR}${file}" ".dump '$table'" | grep '^INSERT ' | $AS sqlite3 "$file"
         done
     fi
 }
@@ -1204,7 +1205,7 @@ raw_restore_spefial_netpolicy() {
         else
             echo "$line"
         fi
-    done | $ADB shell 'cat >/data/system/netpolicy.xml'
+    done | $AS 'cat >/data/system/netpolicy.xml'
 }
 
 raw_restore_spefial_sms() {
@@ -1242,7 +1243,7 @@ raw_restore_spefial_wifi() {
         settings="$(adb shell cat /data/misc/wifi/wpa_supplicant.conf | awk '/^network={/ {flag=1} {if(!flag) print}')"
         networks="$(awk '/^network={/ {flag=1} flag' "$file")"
         echoerr '/data/misc/wifi/wpa_supplicant.conf'
-        $ADB shell 'cat >/data/misc/wifi/wpa_supplicant.conf' <<EOF
+        $AS 'cat >/data/misc/wifi/wpa_supplicant.conf' <<EOF
 ${settings}
 
 ${networks}
@@ -1284,7 +1285,7 @@ use chroot = false
   secrets file = /mnt/secure/rsyncd.secrets
 ' >/mnt/secure/rsyncd.conf"
         password="$(LC_ALL=C tr -dc '[:graph:]' < /dev/urandom | head -c 16)"
-        $ADB shell 'cat >/mnt/secure/rsyncd.secrets' <<EOF
+        $AS 'cat >/mnt/secure/rsyncd.secrets' <<EOF
 backup:${password}
 EOF
         $ASN chmod 600 /mnt/secure/rsyncd.conf /mnt/secure/rsyncd.secrets
