@@ -1531,6 +1531,15 @@ EOL
     mount_ro
 }
 
+op5t_cdma() {
+    adb_root
+    $ASN settings put global airplane_mode_on 1
+    $ASN am broadcast -a android.intent.action.AIRPLANE_MODE
+    adb_killall zygote
+    $ASN settings put global airplane_mode_on 0
+    $ASN am broadcast -a android.intent.action.AIRPLANE_MODE
+}
+
 if type "$action" 2>/dev/null | grep -qF "function"
 then
     shift
