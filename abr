@@ -1492,6 +1492,7 @@ op5t_camera() {
 list_files() {
 cat <<EOF
 vendor/lib/libchromatix_imx398_3a_4656x2608_30fps_preview.so
+vendor/lib/libchromatix_imx398_3a_4656x3496_30fps_preview.so
 vendor/lib/libchromatix_imx398_cpp_4656x3496_30fps_preview.so
 vendor/lib/libchromatix_imx398_cpp_4656x3496_30fps_snapshot.so
 vendor/lib/libchromatix_imx398_isp_4656x3496_30fps_snapshot.so
