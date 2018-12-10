@@ -821,7 +821,7 @@ nfc_emu() {
     $AS 'cat >/system/bin/nfc-emu' <<'EOF'
 #!/system/bin/sh
 
-conf_file=/system/vendor/etc/libnfc-nxp.conf
+conf_file=/vendor/etc/libnfc-nxp.conf
 
 id="${1:-01:02:03:04}"
 
@@ -832,13 +832,15 @@ length="$(printf "%02x" "$length")"
 replace="${length}, ${id//:/, },"
 
 conf="$(cat "$conf_file")"
-mount -o remount,rw /system
+mount -o remount,rw /vendor
 echo "$conf" | sed "s/^        33, .*$/        33, ${replace}/" > "$conf_file"
+mount -o remount,ro /vendor
 if [ -e /system/addon.d/99-nfc-emu.sh ]
 then
+    mount -o remount,rw /system
     sed -i "s/^replace=.*$/replace=\"${replace}\"/" /system/addon.d/99-nfc-emu.sh
+    mount -o remount,ro /system
 fi
-mount -o remount,ro /system
 
 svc nfc disable
 svc nfc enable
@@ -884,7 +886,7 @@ case "$1" in
         # Stub
         ;;
     post-restore)
-        conf_file=/system/vendor/etc/libnfc-nxp.conf
+        conf_file=/vendor/etc/libnfc-nxp.conf
         conf="$(cat "$conf_file")"
         echo "$conf" | sed "s/^        33, .*$/        33, ${replace}/" > "$conf_file"
         ;;
